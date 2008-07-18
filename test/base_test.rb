@@ -13,11 +13,11 @@ Expectations do
     SignupPresenter.new.user
   end
   
-  expect User.to.receive(:new).with(:login => 'james') do
+  expect User.any_instance.to.receive(:update_attributes).with(:login => 'james') do
     SignupPresenter.new(:user_login => 'james')
   end
   
-  expect User.to.receive(:new).with(:login => 'james') do
+  expect User.any_instance.to.receive(:update_attributes).with(:login => 'james') do
     SignupPresenter.new(:user => {:login => 'james'})
   end
 end

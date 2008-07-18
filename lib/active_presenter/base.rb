@@ -12,23 +12,23 @@ module ActivePresenter
     end
     
     def initialize(args = {})
-      presented.keys.each do |type|
-        if args[type].is_a?(presented[type])
-          send("#{type}=", args[type])
-        else
-          send("#{type}=", presented[type].new(attributes_for(type, args).symbolize_keys))
-        end
+      presented.each do |type, klass|
+        send("#{type}=", args[type].is_a?(klass) ? args[type] : klass.new)
+        
+        send("#{type}").update_attributes(attributes_for(type, args))
       end
     end
     
     protected
       def attributes_for(type, args)
-        returning({}) do |a|
-          a.merge(args[type]) if args[type].is_a?(Hash)
-          
-          args.each do |attribute, value|
-            a[attribute.to_s.delete("#{type}_")] = value if attribute.to_s =~ /#{type}_/
-          end
+        (args[type].is_a?(Hash) ? args[type] : flattened_attributes_for(type, args)).symbolize_keys
+      end
+      
+      def flattened_attributes_for(type, args)
+        args.inject({}) do |hash, next_element|
+          key, value = next_element
+          hash[key.to_s.delete("#{type}_")] = value if key.to_s.starts_with?("#{type}_")
+          hash
         end
       end
   end
