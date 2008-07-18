@@ -20,22 +20,25 @@ module ActivePresenter
     end
     
     def method_missing(method_name, *args, &block)
-      presented.keys.each do |type|
-        if method_name.to_s.starts_with?(attribute_prefix(type))
-          message = flatten_attribute_name(method_name, type)
-          
-          if message.ends_with?('=')
-            return send(type).send(message, *args, &block)
-          else
-            return send(type).send(message)
-          end
-        end
-      end
-      
-      super
+      presented_attribute?(method_name) ? delegate_message(method_name, *args, &block) : super
     end
     
     protected
+      def delegate_message(method_name, *args, &block)
+        presentable = presentable_for(method_name)
+        send(presentable).send(flatten_attribute_name(method_name, presentable), *args, &block)
+      end
+      
+      def presentable_for(method_name)
+        presented.keys.detect do |type|
+          method_name.to_s.starts_with?(attribute_prefix(type))
+        end
+      end
+    
+      def presented_attribute?(method_name)
+        !presentable_for(method_name).nil?
+      end
+    
       def attributes_for(type, args)
         (args[type].is_a?(Hash) ? args[type] : flattened_attributes_for(type, args)).symbolize_keys
       end
