@@ -19,6 +19,18 @@ module ActivePresenter
       end
     end
     
+    def method_missing(method_name, *args, &block)
+      presented.keys.each do |type|
+        if method_name.to_s.starts_with?(attribute_prefix(type))
+          attribute = flatten_attribute_name(method_name, type)
+          
+          return send(type).send(attribute)
+        end
+      end
+      
+      super
+    end
+    
     protected
       def attributes_for(type, args)
         (args[type].is_a?(Hash) ? args[type] : flattened_attributes_for(type, args)).symbolize_keys
@@ -27,9 +39,17 @@ module ActivePresenter
       def flattened_attributes_for(type, args)
         args.inject({}) do |hash, next_element|
           key, value = next_element
-          hash[key.to_s.delete("#{type}_")] = value if key.to_s.starts_with?("#{type}_")
+          hash[flatten_attribute_name(key, type)] = value if key.to_s.starts_with?(attribute_prefix(type))
           hash
         end
+      end
+      
+      def flatten_attribute_name(name, type)
+        name.to_s.delete(attribute_prefix(type))
+      end
+      
+      def attribute_prefix(type)
+        "#{type}_"
       end
   end
 end

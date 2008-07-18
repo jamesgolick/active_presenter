@@ -20,4 +20,9 @@ Expectations do
   expect User.any_instance.to.receive(:update_attributes).with(:login => 'james') do
     SignupPresenter.new(:user => {:login => 'james'})
   end
+  
+  expect 'mymockvalue' do
+    User.any_instance.stubs(:login).returns('mymockvalue')
+    SignupPresenter.new.user_login
+  end
 end
