@@ -13,10 +13,10 @@ module ActivePresenter
     
     def initialize(args = {})
       presented.each do |type, klass|
-        send("#{type}=", args[type].is_a?(klass) ? args[type] : klass.new)
-        
-        send("#{type}").update_attributes(attributes_for(type, args))
+        send("#{type}=", args[type].is_a?(klass) ? args.delete(type) : klass.new)
       end
+      
+      args.each { |k,v| send("#{k}=", v) }
     end
     
     def method_missing(method_name, *args, &block)
@@ -37,18 +37,6 @@ module ActivePresenter
     
       def presented_attribute?(method_name)
         !presentable_for(method_name).nil?
-      end
-    
-      def attributes_for(type, args)
-        (args[type].is_a?(Hash) ? args[type] : flattened_attributes_for(type, args)).symbolize_keys
-      end
-      
-      def flattened_attributes_for(type, args)
-        args.inject({}) do |hash, next_element|
-          key, value = next_element
-          hash[flatten_attribute_name(key, type)] = value if key.to_s.starts_with?(attribute_prefix(type))
-          hash
-        end
       end
       
       def flatten_attribute_name(name, type)
