@@ -25,4 +25,8 @@ Expectations do
     User.any_instance.stubs(:login).returns('mymockvalue')
     SignupPresenter.new.user_login
   end
+  
+  expect User.any_instance.to.receive(:login=).with('mymockvalue') do
+    SignupPresenter.new.user_login = 'mymockvalue'
+  end
 end

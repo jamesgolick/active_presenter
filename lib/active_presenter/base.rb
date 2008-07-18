@@ -22,9 +22,13 @@ module ActivePresenter
     def method_missing(method_name, *args, &block)
       presented.keys.each do |type|
         if method_name.to_s.starts_with?(attribute_prefix(type))
-          attribute = flatten_attribute_name(method_name, type)
+          message = flatten_attribute_name(method_name, type)
           
-          return send(type).send(attribute)
+          if message.ends_with?('=')
+            return send(type).send(message, *args, &block)
+          else
+            return send(type).send(message)
+          end
         end
       end
       
