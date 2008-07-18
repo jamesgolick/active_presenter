@@ -23,3 +23,8 @@ class Account < ActiveRecord::Base; end
 class SignupPresenter < ActivePresenter::Base
   presents :account, :user
 end
+
+def hash_for_user(opts = {})
+  {}.merge(opts)
+end
+
