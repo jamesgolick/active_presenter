@@ -1,6 +1,5 @@
 require File.dirname(__FILE__)+'/../lib/active_presenter'
-require 'test/unit'
-require 'mocha'
+require 'expectations'
 
 ActiveRecord::Base.configurations = {'sqlite3' => {:adapter => 'sqlite3', :database => ':memory:'}}
 ActiveRecord::Base.establish_connection('sqlite3')
