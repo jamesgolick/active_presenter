@@ -7,8 +7,9 @@ ActiveRecord::Base.establish_connection('sqlite3')
 
 ActiveRecord::Schema.define(:version => 0) do
   create_table :users do |t|
-    t.string :login,    :default => ''
-    t.string :password, :default => ''
+    t.boolean :admin,    :default => false
+    t.string  :login,    :default => ''
+    t.string  :password, :default => ''
   end
   
   create_table :accounts do |t|
@@ -19,6 +20,6 @@ end
 class User < ActiveRecord::Base; end
 class Account < ActiveRecord::Base; end
 
-class SignupPresenter
-  
+class SignupPresenter < ActivePresenter::Base
+  presents :account, :user
 end
