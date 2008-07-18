@@ -16,7 +16,9 @@ ActiveRecord::Schema.define(:version => 0) do
   end
 end
 
-class User < ActiveRecord::Base; end
+class User < ActiveRecord::Base
+  validates_presence_of :login, :password
+end
 class Account < ActiveRecord::Base; end
 
 class SignupPresenter < ActivePresenter::Base
@@ -24,6 +26,6 @@ class SignupPresenter < ActivePresenter::Base
 end
 
 def hash_for_user(opts = {})
-  {}.merge(opts)
+  {:login => 'jane', :password => 'seekrit' }.merge(opts)
 end
 

@@ -25,4 +25,13 @@ Expectations do
   expect User.any_instance.to.receive(:login=).with('mymockvalue') do
     SignupPresenter.new.user_login = 'mymockvalue'
   end
+  
+  expect SignupPresenter.new.not.to.be.valid?
+  expect SignupPresenter.new(:user => User.new(hash_for_user)).to.be.valid?
+  
+  expect ActiveRecord::Errors do
+    s = SignupPresenter.new
+    s.valid?
+    s.errors
+  end
 end

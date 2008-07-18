@@ -11,6 +11,8 @@ module ActivePresenter
       end
     end
     
+    attr_accessor :errors
+
     def initialize(args = {})
       presented.each do |type, klass|
         send("#{type}=", args[type].is_a?(klass) ? args.delete(type) : klass.new)
@@ -23,7 +25,25 @@ module ActivePresenter
       presented_attribute?(method_name) ? delegate_message(method_name, *args, &block) : super
     end
     
+    def valid?
+      @errors = ActiveRecord::Errors.new(self)
+      presented.keys.each do |type|
+        presented_inst = send(type)
+        
+        unless presented_inst.valid?
+          presented_inst.errors.each do |att,msg|
+            @errors.add(attribute_prefix(type)+att, msg)
+          end
+        end
+      end
+      @errors.empty?
+    end
+    
     protected
+      def presented_instances
+        presented.keys.map { |key| send(key) }
+      end
+      
       def delegate_message(method_name, *args, &block)
         presentable = presentable_for(method_name)
         send(presentable).send(flatten_attribute_name(method_name, presentable), *args, &block)
