@@ -1,6 +1,8 @@
 = ActivePresenter
 
-ActivePresenter is a presenter library whose API is nearly identical to a subclass of ActiveRecord::Base. If you know ActiveRecord, you already pretty much know ActivePresenter!
+ActivePresenter is the presenter library you already know! (...if you know ActiveRecord)
+
+By acting nearly identically to ActiveRecord models, ActivePresenter makes presenters highly approachable to anybody who is already familiar with ActiveRecord.
 
 == Get It
 
