@@ -2,7 +2,15 @@ module ActivePresenter
   class Base
     class_inheritable_accessor :presented
     self.presented = {}
-
+    
+    # Indicates which models are to be presented by this presenter.
+    # i.e.
+    #
+    #   class SignupPresenter < ActivePresenter::Base
+    #     presents User, Account
+    #   end
+    #
+    #
     def self.presents(*types)
       attr_accessor *types
       
