@@ -22,7 +22,11 @@ module ActivePresenter
         send("#{type}=", args[type].is_a?(klass) ? args.delete(type) : klass.new)
       end
       
-      args.each { |k,v| send("#{k}=", v) }
+      self.attributes = args
+    end
+    
+    def attributes=(attrs)
+      attrs.each { |k,v| send("#{k}=", v) }
     end
     
     def method_missing(method_name, *args, &block)
