@@ -52,4 +52,21 @@ Expectations do
     s.valid?
     s.errors.on(:user_login)
   end
+  
+  expect ActiveRecord::Base.to.receive(:transaction) do
+    s = SignupPresenter.new
+    s.save
+  end
+  
+  expect User.any_instance.to.receive(:save) do
+    s = SignupPresenter.new
+    s.save
+  end
+  
+  expect Account.any_instance.to.receive(:save) do
+    s = SignupPresenter.new
+    s.save
+  end
+  
+  expect SignupPresenter.new.not.to.be.save
 end

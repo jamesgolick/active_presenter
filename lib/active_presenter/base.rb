@@ -43,6 +43,16 @@ module ActivePresenter
       @errors.empty?
     end
     
+    def save
+      saved = nil
+      
+      ActiveRecord::Base.transaction do
+        saved = presented_instances.map(&:save).all?
+      end
+      
+      saved
+    end
+    
     protected
       def presented_instances
         presented.keys.map { |key| send(key) }
