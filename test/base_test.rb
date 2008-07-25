@@ -69,4 +69,12 @@ Expectations do
   end
   
   expect SignupPresenter.new.not.to.be.save
+  
+  expect ActiveRecord::Rollback do
+    ActiveRecord::Base.stubs(:transaction).yields
+    User.any_instance.stubs(:save).returns(false)
+    Account.any_instance.stubs(:save).returns(false)
+    s = SignupPresenter.new
+    s.save
+  end
 end

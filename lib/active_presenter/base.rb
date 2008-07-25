@@ -48,6 +48,7 @@ module ActivePresenter
       
       ActiveRecord::Base.transaction do
         saved = presented_instances.map(&:save).all?
+        raise ActiveRecord::Rollback unless saved
       end
       
       saved
