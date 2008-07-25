@@ -29,6 +29,10 @@ module ActivePresenter
       attrs.each { |k,v| send("#{k}=", v) }
     end
     
+    def respond_to?(method)
+      presented_attribute?(method) || super
+    end
+    
     def method_missing(method_name, *args, &block)
       presented_attribute?(method_name) ? delegate_message(method_name, *args, &block) : super
     end

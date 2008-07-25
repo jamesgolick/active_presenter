@@ -97,4 +97,7 @@ Expectations do
   expect ActiveRecord::RecordInvalid do
     SignupPresenter.new.save!
   end
+  
+  expect SignupPresenter.new.to.be.respond_to?(:user_login)
+  expect SignupPresenter.new.to.be.respond_to?(:valid?) # just making sure i didn't break everything :)
 end
