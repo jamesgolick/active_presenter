@@ -16,7 +16,19 @@ module ActivePresenter
     end
     
     attr_accessor :errors
-
+    
+    # Accepts arguments in two forms. For example, if you had a SignupPresenter that presented User, and Account, you could specify arguments in the following two forms:
+    #
+    #   1. SignupPresenter.new(:user_login => 'james', :user_password => 'swordfish', :user_password_confirmation => 'swordfish', :account_subdomain => 'giraffesoft')
+    #     - This form is useful for initializing a new presenter from the params hash: i.e. SignupPresenter.new(params[:signup_presenter])
+    #   2. SignupPresenter.new(:user => User.find(1), :account => Account.find(2))
+    #     - This form is useful if you have instances that you'd like to edit using the presenter. You can subsequently call presenter.update_attributes(params[:signup_presenter]) just like with a regular AR instance.
+    #
+    # Both forms can also be mixed together: SignupPresenter.new(:user => User.find(1), :user_login => 'james')
+    #   In this case, the login attribute will be updated on the user instance provided.
+    # 
+    # If you don't specify an instance, one will be created by calling Model.new
+    #
     def initialize(args = {})
       presented.each do |type, klass|
         send("#{type}=", args[type].is_a?(klass) ? args.delete(type) : klass.new)
