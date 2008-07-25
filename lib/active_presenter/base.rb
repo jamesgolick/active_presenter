@@ -48,7 +48,7 @@ module ActivePresenter
       
       ActiveRecord::Base.transaction do
         saved = presented_instances.map(&:save).all?
-        raise ActiveRecord::Rollback unless saved
+        raise ActiveRecord::Rollback unless saved # TODO: Does this happen implicitly?
       end
       
       saved
