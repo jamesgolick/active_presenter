@@ -64,3 +64,10 @@ Both of these methods are compatible with error_messages_for. It just depends wh
 
 You can save your presenter the same way you'd save an ActiveRecord object. Both #save, and #save! behave the same way they do on a normal AR model.
 
+== Credits
+
+ActivePresenter was created, and is maintained by {Daniel Haran}[http://danielharan.com] and {James Golick}[http://jamesgolick.com] on the train ride to RubyFringe from Montreal.
+
+== License
+
+ActivePresenter is available under the {MIT License}[http://en.wikipedia.org/wiki/MIT_License]
