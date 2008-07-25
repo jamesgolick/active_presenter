@@ -1,4 +1,6 @@
 module ActivePresenter
+  # Base class for presenters. See README for usage.
+  #
   class Base
     class_inheritable_accessor :presented
     self.presented = {}
