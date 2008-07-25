@@ -37,9 +37,11 @@ module ActivePresenter
       presented_attribute?(method_name) ? delegate_message(method_name, *args, &block) : super
     end
     
+    def errors
+      @errors ||= ActiveRecord::Errors.new(self)
+    end
+    
     def valid?
-      self.errors = ActiveRecord::Errors.new(self)
-      
       presented.keys.each do |type|
         presented_inst = send(type)
         
