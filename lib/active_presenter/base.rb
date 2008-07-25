@@ -55,7 +55,7 @@ module ActivePresenter
       presented_attribute?(method_name) ? delegate_message(method_name, *args, &block) : super
     end
     
-    # Returns an instance of ActiveRecord::Errors with all the errors from the presentables merged in using presentable style attribute names (i.e. user_login).
+    # Returns an instance of ActiveRecord::Errors with all the errors from the presentables merged in using the type_attribute form (i.e. user_login).
     #
     def errors
       @errors ||= ActiveRecord::Errors.new(self)
