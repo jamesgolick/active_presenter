@@ -54,6 +54,12 @@ module ActivePresenter
       saved
     end
     
+    def save!
+      ActiveRecord::Base.transaction do
+        presented_instances.each(&:save!)
+      end
+    end
+    
     protected
       def presented_instances
         presented.keys.map { |key| send(key) }

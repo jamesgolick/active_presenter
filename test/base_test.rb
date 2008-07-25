@@ -77,4 +77,24 @@ Expectations do
     s = SignupPresenter.new
     s.save
   end
+  
+  expect ActiveRecord::Base.to.receive(:transaction) do
+    s = SignupPresenter.new
+    s.save!
+  end
+  
+  expect User.any_instance.to.receive(:save!) do
+    s = SignupPresenter.new
+    s.save!
+  end
+  
+  expect Account.any_instance.to.receive(:save!) do
+    User.any_instance.stubs(:save!)
+    s = SignupPresenter.new
+    s.save!
+  end
+  
+  expect ActiveRecord::RecordInvalid do
+    SignupPresenter.new.save!
+  end
 end
