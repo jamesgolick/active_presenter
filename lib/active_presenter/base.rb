@@ -42,12 +42,9 @@ module ActivePresenter
       presented.keys.each do |type|
         presented_inst = send(type)
         
-        unless presented_inst.valid?
-          presented_inst.errors.each do |att,msg|
-            @errors.add(attribute_prefix(type)+att, msg)
-          end
-        end
+        merge_errors(presented_inst, type) unless presented_inst.valid?
       end
+      
       @errors.empty?
     end
     
@@ -94,6 +91,12 @@ module ActivePresenter
       
       def attribute_prefix(type)
         "#{type}_"
+      end
+      
+      def merge_errors(presented_inst, type)
+        presented_inst.errors.each do |att,msg|
+          @errors.add(attribute_prefix(type)+att, msg)
+        end
       end
   end
 end
