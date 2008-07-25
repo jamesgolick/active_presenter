@@ -34,4 +34,22 @@ Expectations do
     s.valid?
     s.errors
   end
+  
+  expect ActiveRecord::Errors do
+    s = SignupPresenter.new
+    s.valid?
+    s.user_errors
+  end
+  
+  expect ActiveRecord::Errors do
+    s = SignupPresenter.new
+    s.valid?
+    s.account_errors
+  end
+  
+  expect String do
+    s = SignupPresenter.new
+    s.valid?
+    s.errors.on(:user_login)
+  end
 end

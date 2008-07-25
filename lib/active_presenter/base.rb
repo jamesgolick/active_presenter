@@ -7,6 +7,10 @@ module ActivePresenter
       attr_accessor *types
       
       types.each do |t|
+        define_method("#{t}_errors") do
+          send(t).errors
+        end
+        
         presented[t] = t.to_s.classify.constantize
       end
     end
