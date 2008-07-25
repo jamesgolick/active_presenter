@@ -37,22 +37,32 @@ module ActivePresenter
       self.attributes = args
     end
     
+    # Set the attributes of the presentable instances using the type_attribute form (i.e. user_login => 'james')
+    #
     def attributes=(attrs)
       attrs.each { |k,v| send("#{k}=", v) }
     end
     
+    # Makes sure that the presenter is accurate about responding to presentable's attributes, even though they are handled by method_missing.
+    #
     def respond_to?(method)
       presented_attribute?(method) || super
     end
     
+    # Handles the decision about whether to delegate getters and setters to presentable instances.
+    #
     def method_missing(method_name, *args, &block)
       presented_attribute?(method_name) ? delegate_message(method_name, *args, &block) : super
     end
     
+    # Returns an instance of ActiveRecord::Errors with all the errors from the presentables merged in using presentable style attribute names (i.e. user_login).
+    #
     def errors
       @errors ||= ActiveRecord::Errors.new(self)
     end
     
+    # Returns boolean based on the validity of the presentables by calling valid? on each of them.
+    #
     def valid?
       presented.keys.each do |type|
         presented_inst = send(type)
@@ -63,6 +73,10 @@ module ActivePresenter
       errors.empty?
     end
     
+    # Save all of the presentables, wrapped in a transaction.
+    # 
+    # Returns true or false based on success.
+    #
     def save
       saved = nil
       
@@ -74,6 +88,10 @@ module ActivePresenter
       saved
     end
     
+    # Save all of the presentables, by calling each of their save! methods, wrapped in a transaction.
+    #
+    # Returns true on success, will raise otherwise.
+    # 
     def save!
       ActiveRecord::Base.transaction do
         presented_instances.each(&:save!)
