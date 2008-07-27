@@ -117,4 +117,10 @@ Expectations do
     s.update_attributes :user_login => 'Something Different'
     s.user_login
   end
+  
+  # this is a regression test to make sure that _title is working. we had a weird conflict with using String#delete
+  expect 'something' do
+    s = SignupPresenter.new :account_title => 'something'
+    s.account_title
+  end
 end

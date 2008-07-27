@@ -138,7 +138,7 @@ module ActivePresenter
       end
       
       def flatten_attribute_name(name, type)
-        name.to_s.delete(attribute_prefix(type))
+        name.to_s.gsub(/^#{attribute_prefix(type)}/, '')
       end
       
       def attribute_prefix(type)

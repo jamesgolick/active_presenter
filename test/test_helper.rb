@@ -13,6 +13,7 @@ ActiveRecord::Schema.define(:version => 0) do
   
   create_table :accounts do |t|
     t.string :subdomain, :default => ''
+    t.string :title,     :default => ''
   end
 end
 
