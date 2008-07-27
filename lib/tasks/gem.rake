@@ -53,10 +53,10 @@ namespace :gem do
   end
 end
 
-task :install => [:clobber, :compile, :package] do
-  sh "#{SUDO} #{gem} install pkg/#{spec.full_name}.gem"
+task :install => [:clobber, :package] do
+  sh "sudo gem install pkg/#{spec.full_name}.gem"
 end
 
 task :uninstall => :clean do
-  sh "#{SUDO} #{gem} uninstall -v #{ActivePresenter::VERSION::STRING} -x #{ActivePresenter::NAME}"
+  sh "sudo gem uninstall -v #{ActivePresenter::VERSION::STRING} -x #{ActivePresenter::NAME}"
 end
