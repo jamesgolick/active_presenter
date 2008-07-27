@@ -108,6 +108,15 @@ module ActivePresenter
       end
     end
     
+    # Update attributes, and save the presentables
+    #
+    # Returns true or false based on success.
+    #
+    def update_attributes(attrs)
+      self.attributes = attrs
+      save
+    end
+    
     protected
       def presented_instances
         presented.keys.map { |key| send(key) }

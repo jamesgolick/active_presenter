@@ -102,4 +102,19 @@ Expectations do
   
   expect SignupPresenter.new.to.be.respond_to?(:user_login)
   expect SignupPresenter.new.to.be.respond_to?(:valid?) # just making sure i didn't break everything :)
+  
+  expect User.create!(hash_for_user).not.to.be.login_changed? do |user|
+    s = SignupPresenter.new(:user => user)
+    s.update_attributes :user_login => 'Something Totally Different'
+  end
+  
+  expect SignupPresenter.new(:user => User.create!(hash_for_user)).to.receive(:save) do |s|
+    s.update_attributes :user_login => 'Something'
+  end
+  
+  expect 'Something Different' do
+    s = SignupPresenter.new
+    s.update_attributes :user_login => 'Something Different'
+    s.user_login
+  end
 end
