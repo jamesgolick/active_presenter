@@ -24,6 +24,7 @@ end
 class User < ActiveRecord::Base
   validates_presence_of :login, :password
   attr_accessible :login, :password
+  attr_accessor   :password_confirmation
 end
 class Account < ActiveRecord::Base; end
 

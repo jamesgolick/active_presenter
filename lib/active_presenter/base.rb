@@ -145,7 +145,8 @@ module ActivePresenter
       end
     
       def presented_attribute?(method_name)
-        !presentable_for(method_name).nil?
+        p = presentable_for(method_name)
+        !p.nil? && send(p).respond_to?(flatten_attribute_name(method_name,p))
       end
       
       def flatten_attribute_name(name, type)
