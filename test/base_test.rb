@@ -59,12 +59,12 @@ Expectations do
   end
   
   expect User.any_instance.to.receive(:save) do
-    s = SignupPresenter.new
+    s = SignupPresenter.new :user => User.new(hash_for_user)
     s.save
   end
   
   expect Account.any_instance.to.receive(:save) do
-    s = SignupPresenter.new
+    s = SignupPresenter.new :user => User.new(hash_for_user)
     s.save
   end
   
@@ -74,7 +74,7 @@ Expectations do
     ActiveRecord::Base.stubs(:transaction).yields
     User.any_instance.stubs(:save).returns(false)
     Account.any_instance.stubs(:save).returns(false)
-    s = SignupPresenter.new
+    s = SignupPresenter.new :user => User.new(hash_for_user)
     s.save
   end
   
@@ -122,5 +122,17 @@ Expectations do
   expect 'something' do
     s = SignupPresenter.new :account_title => 'something'
     s.account_title
+  end
+  
+  expect String do
+    s = SignupPresenter.new
+    s.save
+    s.errors.on(:user_login)
+  end
+  
+  expect String do
+    s = SignupPresenter.new
+    s.save! rescue
+    s.errors.on(:user_login)
   end
 end

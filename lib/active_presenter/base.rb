@@ -88,11 +88,13 @@ module ActivePresenter
     # Returns true or false based on success.
     #
     def save
-      saved = nil
+      saved = false
       
       ActiveRecord::Base.transaction do
-        saved = presented_instances.map(&:save).all?
-        raise ActiveRecord::Rollback unless saved # TODO: Does this happen implicitly?
+        if valid?
+          saved = presented_instances.map { |i| i.save(false) }.all?
+          raise ActiveRecord::Rollback unless saved # TODO: Does this happen implicitly?
+        end
       end
       
       saved
@@ -104,7 +106,8 @@ module ActivePresenter
     # 
     def save!
       ActiveRecord::Base.transaction do
-        presented_instances.each(&:save!)
+        valid? # collect errors before potential exception raise
+        presented_instances.each { |i| i.save! }
       end
     end
     
