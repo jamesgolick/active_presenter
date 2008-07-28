@@ -1,8 +1,12 @@
 require File.dirname(__FILE__)+'/../lib/active_presenter'
 require 'expectations'
+require 'logger'
 
 ActiveRecord::Base.configurations = {'sqlite3' => {:adapter => 'sqlite3', :database => ':memory:'}}
 ActiveRecord::Base.establish_connection('sqlite3')
+
+ActiveRecord::Base.logger = Logger.new(STDERR)
+ActiveRecord::Base.logger.level = Logger::WARN
 
 ActiveRecord::Schema.define(:version => 0) do
   create_table :users do |t|
@@ -19,6 +23,7 @@ end
 
 class User < ActiveRecord::Base
   validates_presence_of :login, :password
+  attr_accessible :login, :password
 end
 class Account < ActiveRecord::Base; end
 

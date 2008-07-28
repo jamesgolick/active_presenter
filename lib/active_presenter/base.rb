@@ -58,7 +58,7 @@ module ActivePresenter
     # Set the attributes of the presentable instances using the type_attribute form (i.e. user_login => 'james')
     #
     def attributes=(attrs)
-      attrs.each { |k,v| send("#{k}=", v) }
+      attrs.each { |k,v| send("#{k}=", v) unless attribute_protected?(k)}
     end
     
     # Makes sure that the presenter is accurate about responding to presentable's attributes, even though they are handled by method_missing.
@@ -160,6 +160,12 @@ module ActivePresenter
         presented_inst.errors.each do |att,msg|
           errors.add(attribute_prefix(type)+att, msg)
         end
+      end
+      
+      def attribute_protected?(name)
+        presentable    = presentable_for(name)
+        flat_attribute = {flatten_attribute_name(name, presentable) => ''} #remove_att... normally takes a hash, so we use a ''
+        presentable.to_s.classify.constantize.new.send(:remove_attributes_protected_from_mass_assignment, flat_attribute).empty?
       end
   end
 end
