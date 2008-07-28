@@ -25,6 +25,14 @@ module ActivePresenter
       end
     end
     
+    def self.human_attribute_name(attribute_name)
+      presentable_type = presented.keys.detect do |type|
+        attribute_name.to_s.starts_with?("#{type}_")
+      end
+      
+      attribute_name.to_s.gsub("#{presentable_type}_", "").humanize
+    end
+    
     attr_accessor :errors
     
     # Accepts arguments in two forms. For example, if you had a SignupPresenter that presented User, and Account, you could specify arguments in the following two forms:

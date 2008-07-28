@@ -135,4 +135,8 @@ Expectations do
     s.save! rescue
     s.errors.on(:user_login)
   end
+  
+  expect 'Login' do
+    SignupPresenter.human_attribute_name(:user_login)
+  end
 end
