@@ -144,4 +144,9 @@ Expectations do
   expect 'Login' do
     SignupPresenter.human_attribute_name(:user_login)
   end
+  
+  # it was raising with nil
+  expect SignupPresenter do
+    SignupPresenter.new(nil)
+  end
 end

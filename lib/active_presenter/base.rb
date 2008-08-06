@@ -48,6 +48,8 @@ module ActivePresenter
     # If you don't specify an instance, one will be created by calling Model.new
     #
     def initialize(args = {})
+      args ||= {}
+      
       presented.each do |type, klass|
         send("#{type}=", args[type].is_a?(klass) ? args.delete(type) : klass.new)
       end
