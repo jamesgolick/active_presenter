@@ -167,6 +167,7 @@ module ActivePresenter
       
       def attribute_protected?(name)
         presentable    = presentable_for(name)
+        return false unless presentable
         flat_attribute = {flatten_attribute_name(name, presentable) => ''} #remove_att... normally takes a hash, so we use a ''
         presentable.to_s.tableize.classify.constantize.new.send(:remove_attributes_protected_from_mass_assignment, flat_attribute).empty?
       end
