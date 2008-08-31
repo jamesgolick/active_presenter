@@ -21,7 +21,7 @@ module ActivePresenter
           send(t).errors
         end
         
-        presented[t] = t.to_s.classify.constantize
+        presented[t] = t.to_s.tableize.classify.constantize
       end
     end
     
