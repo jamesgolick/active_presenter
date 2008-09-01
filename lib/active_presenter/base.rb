@@ -21,7 +21,7 @@ module ActivePresenter
           send(t).errors
         end
         
-        presented[t] = t.to_s.classify.constantize
+        presented[t] = t.to_s.tableize.classify.constantize
       end
     end
     
@@ -168,7 +168,7 @@ module ActivePresenter
       def attribute_protected?(name)
         presentable    = presentable_for(name)
         flat_attribute = {flatten_attribute_name(name, presentable) => ''} #remove_att... normally takes a hash, so we use a ''
-        presentable.to_s.classify.constantize.new.send(:remove_attributes_protected_from_mass_assignment, flat_attribute).empty?
+        presentable.to_s.tableize.classify.constantize.new.send(:remove_attributes_protected_from_mass_assignment, flat_attribute).empty?
       end
   end
 end
