@@ -149,4 +149,6 @@ Expectations do
   expect SignupPresenter do
     SignupPresenter.new(nil)
   end
+  
+  expect EndingWithSPresenter.new.address.not.to.be.nil?
 end

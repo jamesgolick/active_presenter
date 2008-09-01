@@ -19,6 +19,9 @@ ActiveRecord::Schema.define(:version => 0) do
     t.string :subdomain, :default => ''
     t.string :title,     :default => ''
   end
+  
+  create_table :addresses do |t|
+  end
 end
 
 class User < ActiveRecord::Base
@@ -27,9 +30,14 @@ class User < ActiveRecord::Base
   attr_accessor   :password_confirmation
 end
 class Account < ActiveRecord::Base; end
+class Address < ActiveRecord::Base; end
 
 class SignupPresenter < ActivePresenter::Base
   presents :account, :user
+end
+
+class EndingWithSPresenter < ActivePresenter::Base
+  presents :address
 end
 
 def hash_for_user(opts = {})
