@@ -231,4 +231,9 @@ Expectations do
   expect ActiveRecord::Errors.any_instance.to.receive(:clear) do
     CallbackCantValidatePresenter.new.valid?
   end
+
+  # this should act as ActiveRecord models do
+  expect NoMethodError do
+    SignupPresenter.new({:i_dont_exist=>"blah"})
+  end
 end
