@@ -156,4 +156,10 @@ Expectations do
   expect NoMethodError do
     SignupPresenter.new({:i_dont_exist=>"blah"})
   end
+  
+  expect CantSavePresenter.new.not.to.be.save # it won't save because the filter chain will halt
+  
+  expect ActiveRecord::RecordNotSaved do
+    CantSavePresenter.new.save!
+  end
 end

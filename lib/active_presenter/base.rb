@@ -2,6 +2,9 @@ module ActivePresenter
   # Base class for presenters. See README for usage.
   #
   class Base
+    include ActiveSupport::Callbacks
+    define_callbacks :before_save
+    
     class_inheritable_accessor :presented
     self.presented = {}
     
@@ -101,7 +104,7 @@ module ActivePresenter
       saved = false
       
       ActiveRecord::Base.transaction do
-        if valid?
+        if valid? && run_callbacks_with_halt(:before_save)
           saved = presented_instances.map { |i| i.save(false) }.all?
           raise ActiveRecord::Rollback unless saved # TODO: Does this happen implicitly?
         end
@@ -115,6 +118,8 @@ module ActivePresenter
     # Returns true on success, will raise otherwise.
     # 
     def save!
+      raise ActiveRecord::RecordNotSaved unless run_callbacks_with_halt(:before_save)
+      
       ActiveRecord::Base.transaction do
         valid? # collect errors before potential exception raise
         presented_instances.each { |i| i.save! }
@@ -170,6 +175,10 @@ module ActivePresenter
         return false unless presentable
         flat_attribute = {flatten_attribute_name(name, presentable) => ''} #remove_att... normally takes a hash, so we use a ''
         presentable.to_s.tableize.classify.constantize.new.send(:remove_attributes_protected_from_mass_assignment, flat_attribute).empty?
+      end
+      
+      def run_callbacks_with_halt(callback)
+        run_callbacks(callback) { |result, object| result == false }
       end
   end
 end

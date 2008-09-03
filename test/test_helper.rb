@@ -40,6 +40,14 @@ class EndingWithSPresenter < ActivePresenter::Base
   presents :address
 end
 
+class CantSavePresenter < ActivePresenter::Base
+  presents :address
+  
+  before_save :halt
+  
+  def halt; false; end
+end
+
 def hash_for_user(opts = {})
   {:login => 'jane', :password => 'seekrit' }.merge(opts)
 end
