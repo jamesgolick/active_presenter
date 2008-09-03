@@ -12,7 +12,7 @@ module ActivePresenter
     # i.e.
     #
     #   class SignupPresenter < ActivePresenter::Base
-    #     presents User, Account
+    #     presents :user, :account
     #   end
     #
     #

@@ -25,7 +25,7 @@ Or get the source from github:
 Creating a presenter is as simple as subclassing ActivePresenter::Base. Use the presents method to indicate which models the presenter should present.
 
   class SignupPresenter < ActivePresenter::Base
-    presents User, Account
+    presents :user, :account
   end
 
 === Instantiation
