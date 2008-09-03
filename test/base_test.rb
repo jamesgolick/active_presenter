@@ -30,115 +30,15 @@ Expectations do
     SignupPresenter.new.user_login = 'mymockvalue'
   end
 
-  expect SignupPresenter.new.not.to.be.valid?
-  expect SignupPresenter.new(:user => User.new(hash_for_user)).to.be.valid?
-
-  expect ActiveRecord::Errors do
-    s = SignupPresenter.new
-    s.valid?
-    s.errors
-  end
-
-  expect ActiveRecord::Errors do
-    s = SignupPresenter.new
-    s.valid?
-    s.user_errors
-  end
-
-  expect ActiveRecord::Errors do
-    s = SignupPresenter.new
-    s.valid?
-    s.account_errors
-  end
-
-  expect String do
-    s = SignupPresenter.new
-    s.valid?
-    s.errors.on(:user_login)
-  end
-
-  expect ActiveRecord::Base.to.receive(:transaction) do
-    s = SignupPresenter.new
-    s.save
-  end
-
-  expect User.any_instance.to.receive(:save) do
-    s = SignupPresenter.new :user => User.new(hash_for_user)
-    s.save
-  end
-
-  expect Account.any_instance.to.receive(:save) do
-    s = SignupPresenter.new :user => User.new(hash_for_user)
-    s.save
-  end
-
-  expect SignupPresenter.new.not.to.be.save
-
-  expect ActiveRecord::Rollback do
-    ActiveRecord::Base.stubs(:transaction).yields
-    User.any_instance.stubs(:save).returns(false)
-    Account.any_instance.stubs(:save).returns(false)
-    s = SignupPresenter.new :user => User.new(hash_for_user)
-    s.save
-  end
-
-  expect ActiveRecord::Base.to.receive(:transaction) do
-    s = SignupPresenter.new
-    s.save!
-  end
-
-  expect User.any_instance.to.receive(:save!) do
-    s = SignupPresenter.new
-    s.save!
-  end
-
-  expect Account.any_instance.to.receive(:save!) do
-    User.any_instance.stubs(:save!)
-    s = SignupPresenter.new
-    s.save!
-  end
-
-  expect ActiveRecord::RecordInvalid do
-    SignupPresenter.new.save!
-  end
-
-  expect SignupPresenter.new(:user => User.new(hash_for_user)).to.be.save!
-
   expect SignupPresenter.new.to.be.respond_to?(:user_login)
   expect SignupPresenter.new.to.be.respond_to?(:user_password_confirmation)
   expect SignupPresenter.new.to.be.respond_to?(:valid?) # just making sure i didn't break everything :)
 
-  expect User.create!(hash_for_user).not.to.be.login_changed? do |user|
-    s = SignupPresenter.new(:user => user)
-    s.update_attributes :user_login => 'Something Totally Different'
-  end
-
-  expect SignupPresenter.new(:user => User.create!(hash_for_user)).to.receive(:save) do |s|
-    s.update_attributes :user_login => 'Something'
-  end
-
-  expect 'Something Different' do
-    s = SignupPresenter.new
-    s.update_attributes :user_login => 'Something Different'
-    s.user_login
-  end
 
   # this is a regression test to make sure that _title is working. we had a weird conflict with using String#delete
   expect 'something' do
     s = SignupPresenter.new :account_title => 'something'
     s.account_title
-  end
-
-  expect String do
-    s = SignupPresenter.new
-    s.save
-    s.errors.on(:user_login)
-  end
-
-  expect String do
-    s = SignupPresenter.new
-    s.save! rescue
-    s.errors.on(:user_login)
   end
 
   expect 'Login' do
