@@ -66,7 +66,7 @@ Both of these methods are compatible with error_messages_for. It just depends wh
 
 You can save your presenter the same way you'd save an ActiveRecord object. Both #save, and #save! behave the same way they do on a normal AR model.
 
-== Callbacks
+=== Callbacks
 
 Callbacks work exactly like ActiveRecord callbacks. before_save, and after_save are available.
 
