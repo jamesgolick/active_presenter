@@ -162,4 +162,16 @@ Expectations do
   expect ActiveRecord::RecordNotSaved do
     CantSavePresenter.new.save!
   end
+  
+  expect 'Some Street' do
+    p = AfterSavePresenter.new
+    p.save
+    p.address.street
+  end
+  
+  expect 'Some Street' do
+    p = AfterSavePresenter.new
+    p.save!
+    p.address.street
+  end
 end

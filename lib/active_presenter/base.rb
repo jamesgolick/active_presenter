@@ -3,7 +3,7 @@ module ActivePresenter
   #
   class Base
     include ActiveSupport::Callbacks
-    define_callbacks :before_save
+    define_callbacks :before_save, :after_save
     
     class_inheritable_accessor :presented
     self.presented = {}
@@ -110,6 +110,8 @@ module ActivePresenter
         end
       end
       
+      run_callbacks_with_halt(:after_save) if saved
+      
       saved
     end
     
@@ -124,6 +126,8 @@ module ActivePresenter
         valid? # collect errors before potential exception raise
         presented_instances.each { |i| i.save! }
       end
+      
+      run_callbacks_with_halt(:after_save)
     end
     
     # Update attributes, and save the presentables

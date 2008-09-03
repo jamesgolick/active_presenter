@@ -21,6 +21,7 @@ ActiveRecord::Schema.define(:version => 0) do
   end
   
   create_table :addresses do |t|
+    t.string :street
   end
 end
 
@@ -46,6 +47,16 @@ class CantSavePresenter < ActivePresenter::Base
   before_save :halt
   
   def halt; false; end
+end
+
+class AfterSavePresenter < ActivePresenter::Base
+  presents :address
+  
+  after_save :set_street
+  
+  def set_street
+    address.street = 'Some Street'
+  end
 end
 
 def hash_for_user(opts = {})
