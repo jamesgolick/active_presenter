@@ -58,6 +58,10 @@ module ActivePresenter
       self.attributes = args
     end
     
+    def id
+      presented.keys.inject(nil){ |result, element| !!(self.send(element.to_sym).id) || result }
+    end
+    
     # Set the attributes of the presentable instances using the type_attribute form (i.e. user_login => 'james')
     #
     def attributes=(attrs)

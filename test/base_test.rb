@@ -156,6 +156,10 @@ Expectations do
   expect NoMethodError do
     SignupPresenter.new({:i_dont_exist=>"blah"})
   end
+
+  # Rails uses the nil id to signify an unsaved model
+  expect SignupPresenter.new.id.to.be.nil?
+  expect SignupPresenter.new(:user => User.new(hash_for_user)).save!.id.not.to.be.nil?
   
   expect CantSavePresenter.new.not.to.be.save # it won't save because the filter chain will halt
   
