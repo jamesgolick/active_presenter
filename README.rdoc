@@ -27,7 +27,7 @@ Creating a presenter is as simple as subclassing ActivePresenter::Base. Use the 
   class SignupPresenter < ActivePresenter::Base
     presents :user, :account
   end
-
+ 
 === Instantiation
 
 Then, you can instantiate the presenter using either, or both of two forms. 
