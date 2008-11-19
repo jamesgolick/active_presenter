@@ -150,7 +150,7 @@ module ActivePresenter
       end
       
       def presentable_for(method_name)
-        presented.keys.detect do |type|
+        presented.keys.sort_by { |k| k.to_s.size }.reverse.detect do |type|
           method_name.to_s.starts_with?(attribute_prefix(type))
         end
       end

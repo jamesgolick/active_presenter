@@ -174,4 +174,7 @@ Expectations do
     p.save!
     p.address.street
   end
+  
+  expect SamePrefixPresenter.new.to.be.respond_to?(:account_title)
+  expect SamePrefixPresenter.new.to.be.respond_to?(:account_info_info)
 end
