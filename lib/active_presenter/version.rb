@@ -1,8 +1,8 @@
 module ActivePresenter
   module VERSION
-    MAJOR    = 0
+    MAJOR    = 1
     MINOR    = 0
-    TINY     = 5
+    TINY     = 0
     
     STRING   = [MAJOR, MINOR, TINY].join('.')
   end
