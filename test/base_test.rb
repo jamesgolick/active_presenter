@@ -157,9 +157,16 @@ Expectations do
     SignupPresenter.new({:i_dont_exist=>"blah"})
   end
 
-  # Rails uses the nil id to signify an unsaved model
-  expect SignupPresenter.new.id.to.be.nil?
-  expect SignupPresenter.new(:user => User.new(hash_for_user)).save!.id.not.to.be.nil?
+  # ActiveRecord::Base uses nil id to signify an unsaved model
+  expect nil do
+    SignupPresenter.new.id
+  end
+
+  expect /^\d+/ do
+    returning(SignupPresenter.new(:user => User.new(hash_for_user))) do |presenter|
+      presenter.save!
+    end.id.to_s
+  end
   
   expect CantSavePresenter.new.not.to.be.save # it won't save because the filter chain will halt
   

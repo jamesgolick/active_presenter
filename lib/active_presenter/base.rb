@@ -59,7 +59,8 @@ module ActivePresenter
     end
     
     def id
-      presented.keys.inject(nil){ |result, element| !!(self.send(element.to_sym).id) || result }
+      return nil if presented_instances.map(&:new_record?).all?
+      presented_instances.detect {|i| !i.new_record?}.id
     end
     
     # Set the attributes of the presentable instances using the type_attribute form (i.e. user_login => 'james')
