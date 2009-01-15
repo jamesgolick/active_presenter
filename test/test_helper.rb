@@ -68,6 +68,33 @@ class SamePrefixPresenter < ActivePresenter::Base
   presents :account, :account_info
 end
 
+class CallbackOrderingPresenter < ActivePresenter::Base
+  presents :account
+  
+  before_validation :do_before_validation
+  before_save :do_before_save
+  after_save :do_after_save
+  
+  attr_reader :steps
+  
+  def initialize(params={})
+    super
+    @steps = []
+  end
+  
+  def do_before_validation
+    @steps << :before_validation
+  end
+  
+  def do_before_save
+    @steps << :before_save
+  end
+  
+  def do_after_save
+    @steps << :after_save
+  end
+end
+
 def hash_for_user(opts = {})
   {:login => 'jane', :password => 'seekrit' }.merge(opts)
 end

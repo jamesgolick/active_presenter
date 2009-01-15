@@ -83,18 +83,18 @@ Expectations do
   end
 
   expect ActiveRecord::Base.to.receive(:transaction) do
-    s = SignupPresenter.new
+    s = SignupPresenter.new(:user_login => "da", :user_password => "seekrit")
     s.save!
   end
 
   expect User.any_instance.to.receive(:save!) do
-    s = SignupPresenter.new
+    s = SignupPresenter.new(:user_login => "da", :user_password => "seekrit")
     s.save!
   end
 
   expect Account.any_instance.to.receive(:save!) do
     User.any_instance.stubs(:save!)
-    s = SignupPresenter.new
+    s = SignupPresenter.new(:user_login => "da", :user_password => "seekrit")
     s.save!
   end
 
@@ -177,4 +177,10 @@ Expectations do
   
   expect SamePrefixPresenter.new.to.be.respond_to?(:account_title)
   expect SamePrefixPresenter.new.to.be.respond_to?(:account_info_info)
+
+  expect [:before_validation, :before_save, :after_save] do
+    returning(CallbackOrderingPresenter.new) do |presenter|
+      presenter.save!
+    end.steps
+  end
 end

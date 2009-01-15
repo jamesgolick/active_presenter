@@ -3,7 +3,7 @@ module ActivePresenter
   #
   class Base
     include ActiveSupport::Callbacks
-    define_callbacks :before_save, :after_save
+    define_callbacks :before_validation, :before_save, :after_save
     
     class_inheritable_accessor :presented
     self.presented = {}
@@ -87,13 +87,15 @@ module ActivePresenter
     # Returns boolean based on the validity of the presentables by calling valid? on each of them.
     #
     def valid?
-      presented.keys.each do |type|
-        presented_inst = send(type)
-        
-        merge_errors(presented_inst, type) unless presented_inst.valid?
+      if run_callbacks_with_halt(:before_validation)
+        presented.keys.each do |type|
+          presented_inst = send(type)
+
+          merge_errors(presented_inst, type) unless presented_inst.valid?
+        end
+
+        errors.empty?
       end
-      
-      errors.empty?
     end
     
     # Save all of the presentables, wrapped in a transaction.
@@ -120,10 +122,10 @@ module ActivePresenter
     # Returns true on success, will raise otherwise.
     # 
     def save!
+      raise ActiveRecord::RecordInvalid.new(self) unless valid?
       raise ActiveRecord::RecordNotSaved unless run_callbacks_with_halt(:before_save)
       
       ActiveRecord::Base.transaction do
-        valid? # collect errors before potential exception raise
         presented_instances.each { |i| i.save! }
       end
       
