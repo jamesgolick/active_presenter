@@ -223,4 +223,8 @@ Expectations do
       presenter.save
     end.steps
   end
+
+  expect ActiveRecord::Errors.any_instance.to.receive(:clear) do
+    CallbackCantValidatePresenter.new.valid?
+  end
 end

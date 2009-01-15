@@ -87,6 +87,7 @@ module ActivePresenter
     # Returns boolean based on the validity of the presentables by calling valid? on each of them.
     #
     def valid?
+      errors.clear
       if run_callbacks_with_halt(:before_validation)
         presented.keys.each do |type|
           presented_inst = send(type)
