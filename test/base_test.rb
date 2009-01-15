@@ -183,4 +183,10 @@ Expectations do
       presenter.save!
     end.steps
   end
+
+  expect [:before_validation, :before_save] do
+    returning(CallbackCantSavePresenter.new) do |presenter|
+      presenter.save
+    end.steps
+  end
 end
