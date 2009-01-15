@@ -118,7 +118,7 @@ module ActivePresenter
       saved
     end
     
-    # Save all of the presentables, by calling each of their save! methods, wrapped in a transaction.
+    # Save all of the presentables wrapped in a transaction.
     #
     # Returns true on success, will raise otherwise.
     # 
