@@ -36,8 +36,6 @@ module ActivePresenter
       attribute_name.to_s.gsub("#{presentable_type}_", "").humanize
     end
     
-    attr_accessor :errors
-    
     # Accepts arguments in two forms. For example, if you had a SignupPresenter that presented User, and Account, you could specify arguments in the following two forms:
     #
     #   1. SignupPresenter.new(:user_login => 'james', :user_password => 'swordfish', :user_password_confirmation => 'swordfish', :account_subdomain => 'giraffesoft')
