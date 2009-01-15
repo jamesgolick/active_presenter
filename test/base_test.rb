@@ -190,6 +190,34 @@ Expectations do
     end.steps
   end
 
+  expect [:before_validation, :before_save] do
+    returning(CallbackCantSavePresenter.new) do |presenter|
+      begin
+        presenter.save!
+      rescue ActiveRecord::RecordNotSaved
+        # NOP
+      end
+    end.steps
+  end
+
+  expect ActiveRecord::RecordNotSaved do
+    CallbackCantSavePresenter.new.save!
+  end
+
+  expect ActiveRecord::RecordInvalid do
+    CallbackCantValidatePresenter.new.save!
+  end
+
+  expect [:before_validation] do
+    returning(CallbackCantValidatePresenter.new) do |presenter|
+      begin
+        presenter.save!
+      rescue ActiveRecord::RecordInvalid
+        # NOP
+      end
+    end.steps
+  end
+
   expect [:before_validation] do
     returning(CallbackCantValidatePresenter.new) do |presenter|
       presenter.save
