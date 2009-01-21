@@ -5,6 +5,10 @@ Expectations do
     SignupPresenter.new.id
   end
 
+  expect true do
+    SignupPresenter.new.new_record?
+  end
+
   expect :user => User, :account => Account do
     SignupPresenter.presented
   end

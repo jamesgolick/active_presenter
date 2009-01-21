@@ -139,9 +139,13 @@ module ActivePresenter
       save
     end
     
+    # We define #id and #new_record? to play nice with form_for(@presenter) in Rails
     def id # :nodoc:
-      # We override #id to return nil to play nice with form_for(@presenter) in Rails
       nil
+    end
+
+    def new_record?
+      true
     end
     
     protected
