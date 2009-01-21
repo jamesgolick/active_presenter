@@ -59,7 +59,7 @@ module ActivePresenter
       
       self.attributes = args
     end
-    
+
     # Set the attributes of the presentable instances using the type_attribute form (i.e. user_login => 'james')
     #
     def attributes=(attrs)
@@ -137,6 +137,11 @@ module ActivePresenter
     def update_attributes(attrs)
       self.attributes = attrs
       save
+    end
+    
+    def id # :nodoc:
+      # We override #id to return nil to play nice with form_for(@presenter) in Rails
+      nil
     end
     
     protected

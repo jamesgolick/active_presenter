@@ -1,6 +1,10 @@
 require File.dirname(__FILE__)+'/test_helper'
 
 Expectations do
+  expect nil do
+    SignupPresenter.new.id
+  end
+
   expect :user => User, :account => Account do
     SignupPresenter.presented
   end
