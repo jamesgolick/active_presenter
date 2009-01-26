@@ -243,4 +243,16 @@ Expectations do
   expect NoMethodError do
     SignupPresenter.new({:i_dont_exist=>"blah"})
   end
+
+  expect false do
+    SignupNoNilPresenter.new.save
+  end
+
+  expect true do
+    SignupNoNilPresenter.new(:user => nil, :account => Account.new).save
+  end
+
+  expect true do
+    SignupNoNilPresenter.new(:user => nil, :account => Account.new).save!
+  end
 end
