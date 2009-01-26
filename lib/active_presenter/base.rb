@@ -95,7 +95,7 @@ module ActivePresenter
         presented.keys.each do |type|
           presented_inst = send(type)
 
-          next unless save?(presented_inst)
+          next unless save?(type, presented_inst)
           merge_errors(presented_inst, type) unless presented_inst.valid?
         end
 
@@ -112,7 +112,7 @@ module ActivePresenter
       
       ActiveRecord::Base.transaction do
         if valid? && run_callbacks_with_halt(:before_save)
-          saved = presented_instances.select {|i| save?(i)}.map { |i| i.save(false) }.all?
+          saved = presented.keys.select {|key| save?(key, send(key))}.all? {|key| send(key).save}
           raise ActiveRecord::Rollback unless saved # TODO: Does this happen implicitly?
         end
 
@@ -131,7 +131,7 @@ module ActivePresenter
       raise ActiveRecord::RecordNotSaved unless run_callbacks_with_halt(:before_save)
       
       ActiveRecord::Base.transaction do
-        presented_instances.select {|i| save?(i)}.each { |i| i.save! }
+        presented.keys.select {|key| save?(key, send(key))}.each {|key| send(key).save!}
 
         run_callbacks_with_halt(:after_save)
       end
@@ -150,7 +150,16 @@ module ActivePresenter
     
     # Should this presented instance be saved?  By default, this returns true
     # Called from #save and #save!
-    def save?(presented_instance)
+    #
+    # For
+    #  class SignupPresenter < ActivePresenter::Base
+    #    presents :account, :user
+    #  end
+    #
+    # #save? will be called twice:
+    #  save?(:account, #<Account:0x1234dead>)
+    #  save?(:user, #<User:0xdeadbeef>)
+    def save?(presented_key, presented_instance)
       true
     end
 

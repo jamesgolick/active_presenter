@@ -57,7 +57,7 @@ end
 class SignupNoNilPresenter < ActivePresenter::Base
   presents :account, :user
 
-  def save?(instance)
+  def save?(key, instance)
     !instance.nil?
   end
 end
