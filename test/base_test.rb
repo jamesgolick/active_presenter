@@ -170,10 +170,10 @@ Expectations do
     SignupPresenter.new.id
   end
 
-  expect /^\d+/ do
+  expect nil do
     returning(SignupPresenter.new(:user => User.new(hash_for_user))) do |presenter|
       presenter.save!
-    end.id.to_s
+    end.id
   end
   
   expect CantSavePresenter.new.not.to.be.save # it won't save because the filter chain will halt
