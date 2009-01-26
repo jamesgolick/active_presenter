@@ -114,9 +114,9 @@ module ActivePresenter
           saved = presented_instances.map { |i| i.save(false) }.all?
           raise ActiveRecord::Rollback unless saved # TODO: Does this happen implicitly?
         end
+
+        run_callbacks_with_halt(:after_save) if saved
       end
-      
-      run_callbacks_with_halt(:after_save) if saved
       
       saved
     end
@@ -131,9 +131,9 @@ module ActivePresenter
       
       ActiveRecord::Base.transaction do
         presented_instances.each { |i| i.save! }
+
+        run_callbacks_with_halt(:after_save)
       end
-      
-      run_callbacks_with_halt(:after_save)
     end
     
     # Update attributes, and save the presentables
