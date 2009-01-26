@@ -57,16 +57,7 @@ module ActivePresenter
       
       self.attributes = args
     end
-<<<<<<< HEAD:lib/active_presenter/base.rb
-    
-    def id
-      return nil if presented_instances.map(&:new_record?).all?
-      presented_instances.detect {|i| !i.new_record?}.id
-    end
-    
-=======
 
->>>>>>> james:lib/active_presenter/base.rb
     # Set the attributes of the presentable instances using the type_attribute form (i.e. user_login => 'james')
     #
     def attributes=(attrs)
@@ -152,7 +143,6 @@ module ActivePresenter
       save
     end
     
-<<<<<<< HEAD:lib/active_presenter/base.rb
     # Should this presented instance be saved?  By default, this returns true
     # Called from #save and #save!
     #
@@ -168,7 +158,6 @@ module ActivePresenter
       true
     end
 
-=======
     # We define #id and #new_record? to play nice with form_for(@presenter) in Rails
     def id # :nodoc:
       nil
@@ -177,8 +166,7 @@ module ActivePresenter
     def new_record?
       true
     end
-    
->>>>>>> james:lib/active_presenter/base.rb
+
     protected
       def presented_instances
         presented.keys.map { |key| send(key) }
