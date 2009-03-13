@@ -130,7 +130,21 @@ Expectations do
     s.update_attributes :user_login => 'Something Different'
     s.user_login
   end
-
+  
+  # Multiparameter assignment
+  expect Time.parse('March 27 1980 9:30:59 am') do
+    s = SignupPresenter.new
+    s.update_attributes({
+      :"user_birthday(1i)" => '1980',
+      :"user_birthday(2i)" => '3',
+      :"user_birthday(3i)" => '27',
+      :"user_birthday(4i)" => '9',
+      :"user_birthday(5i)" => '30',
+      :"user_birthday(6i)" => '59'
+    })
+    s.user_birthday
+  end
+  
   # this is a regression test to make sure that _title is working. we had a weird conflict with using String#delete
   expect 'something' do
     s = SignupPresenter.new :account_title => 'something'

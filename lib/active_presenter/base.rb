@@ -58,10 +58,26 @@ module ActivePresenter
       self.attributes = args
     end
 
-    # Set the attributes of the presentable instances using the type_attribute form (i.e. user_login => 'james')
+    # Set the attributes of the presentable instances using
+    # the type_attribute form (i.e. user_login => 'james'), or
+    # the multiparameter attribute form (i.e. {user_birthday(1i) => "1980", user_birthday(2i) => "3"})
     #
     def attributes=(attrs)
-      attrs.each { |k,v| send("#{k}=", v) unless attribute_protected?(k)}
+      multi_parameter_attributes = {}
+      
+      attrs.each do |k,v|
+        if (base_attribute = k.to_s.split("(").first) != k.to_s
+          presentable = presentable_for(base_attribute)
+          multi_parameter_attributes[presentable] ||= {}
+          multi_parameter_attributes[presentable].merge!(flatten_attribute_name(k,presentable).to_sym => v)
+        else
+          send("#{k}=", v) unless attribute_protected?(k)
+        end
+      end
+      
+      multi_parameter_attributes.each do |presentable,multi_attrs|
+        send(presentable).send(:attributes=, multi_attrs)
+      end
     end
     
     # Makes sure that the presenter is accurate about responding to presentable's attributes, even though they are handled by method_missing.
