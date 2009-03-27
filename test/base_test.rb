@@ -17,6 +17,10 @@ Expectations do
     SignupPresenter.new(:user => u.expected).user
   end
 
+  expect true do
+    SignupPresenter.new(:user => nil).user.new_record?
+  end
+
   expect User do
     SignupPresenter.new.user
   end
@@ -267,15 +271,15 @@ Expectations do
   end
 
   expect false do
-    SignupNoNilPresenter.new.save
+    SignupNoAccountPresenter.new.save
   end
 
   expect true do
-    SignupNoNilPresenter.new(:user => nil, :account => Account.new).save
+    SignupNoAccountPresenter.new(:user => User.new(hash_for_user), :account => nil).save
   end
 
   expect true do
-    SignupNoNilPresenter.new(:user => nil, :account => Account.new).save!
+    SignupNoAccountPresenter.new(:user => User.new(hash_for_user), :account => nil).save!
   end
 
   expect Address do

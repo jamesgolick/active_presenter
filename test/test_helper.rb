@@ -59,11 +59,11 @@ class CantSavePresenter < ActivePresenter::Base
   def halt; false; end
 end
 
-class SignupNoNilPresenter < ActivePresenter::Base
+class SignupNoAccountPresenter < ActivePresenter::Base
   presents :account, :user
 
   def save?(key, instance)
-    !instance.nil?
+    key != :account
   end
 end
 
