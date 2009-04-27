@@ -69,6 +69,12 @@ Expectations do
     s.errors.on(:user_login)
   end
 
+  expect ['User Password can not be blank'] do
+    s = SignupPresenter.new(:user_login => 'login')
+    s.valid?
+    s.errors.full_messages
+  end
+
   expect ActiveRecord::Base.to.receive(:transaction) do
     s = SignupPresenter.new
     s.save

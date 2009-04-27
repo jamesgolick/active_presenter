@@ -31,9 +31,14 @@ ActiveRecord::Schema.define(:version => 0) do
 end
 
 class User < ActiveRecord::Base
-  validates_presence_of :login, :password
+  validates_presence_of :login
+  validate :presence_of_password
   attr_accessible :login, :password, :birthday
   attr_accessor   :password_confirmation
+
+  def presence_of_password
+    errors.add_to_base('Password can not be blank') if password.blank?
+  end
 end
 class Account < ActiveRecord::Base; end
 class Address < ActiveRecord::Base; end

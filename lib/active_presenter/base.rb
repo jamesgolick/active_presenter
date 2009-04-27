@@ -223,7 +223,11 @@ module ActivePresenter
       
       def merge_errors(presented_inst, type)
         presented_inst.errors.each do |att,msg|
-          errors.add(attribute_prefix(type)+att, msg)
+          if att == 'base'
+            errors.add(type, msg)
+          else
+            errors.add(attribute_prefix(type)+att, msg)
+          end
         end
       end
       
