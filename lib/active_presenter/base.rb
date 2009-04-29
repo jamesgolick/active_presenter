@@ -91,7 +91,7 @@ module ActivePresenter
     
     # Makes sure that the presenter is accurate about responding to presentable's attributes, even though they are handled by method_missing.
     #
-    def respond_to?(method)
+    def respond_to?(method, include_private = false)
       presented_attribute?(method) || super
     end
     

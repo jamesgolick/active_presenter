@@ -125,6 +125,7 @@ Expectations do
   expect SignupPresenter.new.to.be.respond_to?(:user_login)
   expect SignupPresenter.new.to.be.respond_to?(:user_password_confirmation)
   expect SignupPresenter.new.to.be.respond_to?(:valid?) # just making sure i didn't break everything :)
+  expect SignupPresenter.new.to.be.respond_to?(:nil?, false) # making sure it's possible to pass 2 arguments
 
   expect User.create!(hash_for_user).not.to.be.login_changed? do |user|
     s = SignupPresenter.new(:user => user)
