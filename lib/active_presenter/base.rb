@@ -72,6 +72,8 @@ module ActivePresenter
     # the multiparameter attribute form (i.e. {user_birthday(1i) => "1980", user_birthday(2i) => "3"})
     #
     def attributes=(attrs)
+      return if attrs.nil?
+
       multi_parameter_attributes = {}
       
       attrs.each do |k,v|

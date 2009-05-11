@@ -155,6 +155,11 @@ Expectations do
     })
     s.user_birthday
   end
+
+  expect nil do
+    s = SignupPresenter.new
+    s.attributes = nil
+  end
   
   # this is a regression test to make sure that _title is working. we had a weird conflict with using String#delete
   expect 'something' do
