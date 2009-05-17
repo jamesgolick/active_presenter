@@ -28,6 +28,12 @@ Creating a presenter is as simple as subclassing ActivePresenter::Base. Use the 
     presents :user, :account
   end
  
+In the above example, :user will (predictably) become User. If you want to override this behaviour, specify the desired types in a hash, as so:
+
+  class PresenterWithTwoAddresses < ActivePresenter::Base
+    presents :primary_address => Address, :secondary_address => Address
+  end
+
 === Instantiation
 
 Then, you can instantiate the presenter using either, or both of two forms. 

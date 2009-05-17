@@ -14,7 +14,12 @@ module ActivePresenter
     #   class SignupPresenter < ActivePresenter::Base
     #     presents :user, :account
     #   end
+    #  
+    # In the above example, :user will (predictably) become User. If you want to override this behaviour, specify the desired types in a hash, as so:
     #
+    #   class PresenterWithTwoAddresses < ActivePresenter::Base
+    #     presents :primary_address => Address, :secondary_address => Address
+    #   end
     #
     def self.presents(*types)
       types_and_classes = types.extract_options!
