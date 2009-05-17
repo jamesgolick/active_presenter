@@ -277,4 +277,14 @@ Expectations do
   expect true do
     SignupNoNilPresenter.new(:user => nil, :account => Account.new).save!
   end
+
+  expect Address do
+    PresenterWithTwoAddresses.new.secondary_address
+  end
+  
+  expect "123 awesome st" do
+    p = PresenterWithTwoAddresses.new(:secondary_address_street => "123 awesome st")
+    p.save
+    p.secondary_address_street
+  end
 end

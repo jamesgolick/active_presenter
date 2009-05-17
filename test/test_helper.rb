@@ -39,6 +39,10 @@ class Account < ActiveRecord::Base; end
 class Address < ActiveRecord::Base; end
 class AccountInfo < ActiveRecord::Base; end
 
+class PresenterWithTwoAddresses < ActivePresenter::Base
+  presents :address, :secondary_address => Address
+end
+
 class SignupPresenter < ActivePresenter::Base
   presents :account, :user
 end

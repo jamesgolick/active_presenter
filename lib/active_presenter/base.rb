@@ -17,14 +17,17 @@ module ActivePresenter
     #
     #
     def self.presents(*types)
-      attr_accessor *types
+      types_and_classes = types.extract_options!
+      types.each { |t| types_and_classes[t] = t.to_s.tableize.classify.constantize }
+
+      attr_accessor *types_and_classes.keys
       
-      types.each do |t|
+      types_and_classes.keys.each do |t|
         define_method("#{t}_errors") do
           send(t).errors
         end
         
-        presented[t] = t.to_s.tableize.classify.constantize
+        presented[t] = types_and_classes[t]
       end
     end
     
@@ -222,7 +225,7 @@ module ActivePresenter
         presentable    = presentable_for(name)
         return false unless presentable
         flat_attribute = {flatten_attribute_name(name, presentable) => ''} #remove_att... normally takes a hash, so we use a ''
-        presentable.to_s.tableize.classify.constantize.new.send(:remove_attributes_protected_from_mass_assignment, flat_attribute).empty?
+        presented[presentable].new.send(:remove_attributes_protected_from_mass_assignment, flat_attribute).empty?
       end
       
       def run_callbacks_with_halt(callback)
