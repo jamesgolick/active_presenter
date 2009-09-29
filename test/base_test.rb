@@ -69,10 +69,42 @@ Expectations do
     s.errors.on(:user_login)
   end
 
-  expect ['User Password can not be blank'] do
+  expect "can't be blank" do
+    s = SignupPresenter.new
+    s.valid?
+    s.errors.on(:user_login)
+  end
+
+  expect ["User Password can't be blank"] do
     s = SignupPresenter.new(:user_login => 'login')
     s.valid?
     s.errors.full_messages
+  end
+
+  expect 'c4N n07 83 8L4nK' do
+    old_locale = I18n.locale
+    I18n.locale = '1337'
+    
+    s = SignupPresenter.new(:user_login => nil)
+    s.valid?
+    message = s.errors.on(:user_login)
+    
+    I18n.locale = old_locale
+    
+    message
+  end
+
+  expect ['U53R pa22w0rD c4N n07 83 8L4nK'] do
+    old_locale = I18n.locale
+    I18n.locale = '1337'
+    
+    s = SignupPresenter.new(:user_login => 'login')
+    s.valid?
+    message = s.errors.full_messages
+    
+    I18n.locale = old_locale
+    
+    message
   end
 
   expect ActiveRecord::Base.to.receive(:transaction) do

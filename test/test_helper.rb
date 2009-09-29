@@ -8,6 +8,21 @@ ActiveRecord::Base.establish_connection('sqlite3')
 ActiveRecord::Base.logger = Logger.new(STDERR)
 ActiveRecord::Base.logger.level = Logger::WARN
 
+I18n.backend.store_translations '1337',
+  :activerecord => {
+    :models => {
+      :user => 'U53R'
+    },
+    :attributes => {
+      :user => {:password => 'pa22w0rD'}
+    },
+    :errors => {
+      :messages => {
+        :blank => 'c4N n07 83 8L4nK'
+      }
+    }
+  }
+  
 ActiveRecord::Schema.define(:version => 0) do
   create_table :users do |t|
     t.boolean  :admin,    :default => false
@@ -37,7 +52,11 @@ class User < ActiveRecord::Base
   attr_accessor   :password_confirmation
 
   def presence_of_password
-    errors.add_to_base('Password can not be blank') if password.blank?
+    if password.blank?
+      attribute_name = I18n.t(:password, {:default => "Password", :scope => [:activerecord, :attributes, :user]})
+      error_message = I18n.t(:blank, {:default => "can't be blank", :scope => [:activerecord, :errors, :messages]})
+      errors.add_to_base("#{attribute_name} #{error_message}")
+    end
   end
 end
 class Account < ActiveRecord::Base; end
