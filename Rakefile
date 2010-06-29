@@ -6,5 +6,5 @@ Dir.glob(File.dirname(__FILE__)+'/lib/tasks/**/*.rake').each { |l| load l }
 task :default => :test
 
 task :test do
-  Dir['test/**/*_test.rb'].each { |l| require l }
+  Dir['test/**/*_test.rb'].each { |l| require File.join(File.dirname(__FILE__),l)}
 end

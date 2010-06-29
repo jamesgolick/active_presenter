@@ -45,34 +45,34 @@ Expectations do
   expect SignupPresenter.new.not.to.be.valid?
   expect SignupPresenter.new(:user => User.new(hash_for_user)).to.be.valid?
 
-  expect ActiveRecord::Errors do
+  expect ActiveModel::Errors do
     s = SignupPresenter.new
     s.valid?
     s.errors
   end
 
-  expect ActiveRecord::Errors do
+  expect ActiveModel::Errors do
     s = SignupPresenter.new
     s.valid?
     s.user_errors
   end
 
-  expect ActiveRecord::Errors do
+  expect ActiveModel::Errors do
     s = SignupPresenter.new
     s.valid?
     s.account_errors
   end
 
-  expect String do
+  expect ["can't be blank"] do
     s = SignupPresenter.new
     s.valid?
-    s.errors.on(:user_login)
+    s.errors[:user_login]
   end
 
-  expect "can't be blank" do
+  expect ["can't be blank"] do
     s = SignupPresenter.new
     s.valid?
-    s.errors.on(:user_login)
+    s.errors[:user_login]
   end
 
   expect ["User Password can't be blank"] do
@@ -81,13 +81,13 @@ Expectations do
     s.errors.full_messages
   end
 
-  expect 'c4N n07 83 8L4nK' do
+  expect ['c4N n07 83 8L4nK'] do
     old_locale = I18n.locale
     I18n.locale = '1337'
     
     s = SignupPresenter.new(:user_login => nil)
     s.valid?
-    message = s.errors.on(:user_login)
+    message = s.errors[:user_login]
     
     I18n.locale = old_locale
     
@@ -173,7 +173,7 @@ Expectations do
     s.update_attributes :user_login => 'Something Different'
     s.user_login
   end
-  
+
   # Multiparameter assignment
   expect Time.parse('March 27 1980 9:30:59 am') do
     s = SignupPresenter.new
@@ -192,23 +192,23 @@ Expectations do
     s = SignupPresenter.new
     s.attributes = nil
   end
-  
+
   # this is a regression test to make sure that _title is working. we had a weird conflict with using String#delete
   expect 'something' do
     s = SignupPresenter.new :account_title => 'something'
     s.account_title
   end
 
-  expect String do
+  expect ["can't be blank"] do
     s = SignupPresenter.new
     s.save
-    s.errors.on(:user_login)
+    s.errors[:user_login]
   end
 
-  expect String do
+  expect ["can't be blank"] do
     s = SignupPresenter.new
     s.save! rescue
-    s.errors.on(:user_login)
+    s.errors[:user_login]
   end
 
   expect 'Login' do
@@ -219,7 +219,7 @@ Expectations do
   expect SignupPresenter do
     SignupPresenter.new(nil)
   end
-  
+
   expect EndingWithSPresenter.new.address.not.to.be.nil?
 
   # this should act as ActiveRecord models do
@@ -237,25 +237,25 @@ Expectations do
       presenter.save!
     end.id
   end
-  
+
   expect CantSavePresenter.new.not.to.be.save # it won't save because the filter chain will halt
-  
+
   expect ActiveRecord::RecordNotSaved do
     CantSavePresenter.new.save!
   end
-  
+
   expect 'Some Street' do
     p = AfterSavePresenter.new
     p.save
     p.address.street
   end
-  
+
   expect 'Some Street' do
     p = AfterSavePresenter.new
     p.save!
     p.address.street
   end
-  
+
   expect SamePrefixPresenter.new.to.be.respond_to?(:account_title)
   expect SamePrefixPresenter.new.to.be.respond_to?(:account_info_info)
 
@@ -305,7 +305,7 @@ Expectations do
     end.steps
   end
 
-  expect ActiveRecord::Errors.any_instance.to.receive(:clear) do
+  expect ActiveModel::Errors.any_instance.to.receive(:clear) do
     CallbackCantValidatePresenter.new.valid?
   end
 
@@ -329,10 +329,33 @@ Expectations do
   expect Address do
     PresenterWithTwoAddresses.new.secondary_address
   end
-  
+
   expect "123 awesome st" do
     p = PresenterWithTwoAddresses.new(:secondary_address_street => "123 awesome st")
     p.save
     p.secondary_address_street
+  end
+
+  # attr_protected
+  expect "" do
+    p = SignupPresenter.new(:account_secret => 'swordfish')
+    p.account.secret
+  end
+
+  expect "comment" do
+    p = HistoricalPresenter.new(:history_comment => 'comment', :user => User.new(hash_for_user))
+    p.save
+    p.history_comment
+  end
+
+  expect false do
+    SignupPresenter.new.changed?
+  end
+
+  expect true do
+    p = SignupPresenter.new(:user => User.new(hash_for_user))
+    p.save
+    p.user_login = 'something_else'
+    p.changed?
   end
 end

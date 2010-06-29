@@ -34,6 +34,7 @@ ActiveRecord::Schema.define(:version => 0) do
   create_table :accounts do |t|
     t.string :subdomain, :default => ''
     t.string :title,     :default => ''
+    t.string :secret,    :default => ''
   end
   
   create_table :addresses do |t|
@@ -42,6 +43,13 @@ ActiveRecord::Schema.define(:version => 0) do
 
   create_table :account_infos do |t|
     t.string :info
+  end
+  
+  create_table :histories do |t|
+    t.integer  :user_id
+    t.string   :comment,   :default => ''
+    t.string   :action,    :default => ''
+    t.datetime :created_at
   end
 end
 
@@ -55,11 +63,12 @@ class User < ActiveRecord::Base
     if password.blank?
       attribute_name = I18n.t(:password, {:default => "Password", :scope => [:activerecord, :attributes, :user]})
       error_message = I18n.t(:blank, {:default => "can't be blank", :scope => [:activerecord, :errors, :messages]})
-      errors.add_to_base("#{attribute_name} #{error_message}")
+      errors[:base] << ("#{attribute_name} #{error_message}")
     end
   end
 end
-class Account < ActiveRecord::Base; end
+class Account < ActiveRecord::Base ;end
+class History < ActiveRecord::Base ;end
 class Address < ActiveRecord::Base; end
 class AccountInfo < ActiveRecord::Base; end
 
@@ -69,6 +78,7 @@ end
 
 class SignupPresenter < ActivePresenter::Base
   presents :account, :user
+  attr_protected :account_secret
 end
 
 class EndingWithSPresenter < ActivePresenter::Base
@@ -87,7 +97,7 @@ class SignupNoAccountPresenter < ActivePresenter::Base
   presents :account, :user
 
   def save?(key, instance)
-    key != :account
+    key.to_sym != :account
   end
 end
 
@@ -196,7 +206,16 @@ class CallbackCantValidatePresenter < ActivePresenter::Base
   end
 end
 
+class HistoricalPresenter < ActivePresenter::Base
+  presents :user, :history  
+  attr_accessible :history_comment
+end
+
 def hash_for_user(opts = {})
   {:login => 'jane', :password => 'seekrit' }.merge(opts)
 end
 
+def returning(value)
+  yield(value)
+  value
+end

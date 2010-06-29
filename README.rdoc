@@ -28,7 +28,7 @@ Creating a presenter is as simple as subclassing ActivePresenter::Base. Use the 
     presents :user, :account
   end
  
-In the above example, :user will (predictably) become User. If you want to override this behaviour, specify the desired types in a hash, as so:
+In the above example, :user will (predictably) become User. If you want to override this behavior, specify the desired types in a hash, as so:
 
   class PresenterWithTwoAddresses < ActivePresenter::Base
     presents :primary_address => Address, :secondary_address => Address
@@ -67,6 +67,15 @@ You can retrieve the errors in two ways.
   2. By calling @presenter.user_errors, or @presenter.user.errors to retrieve the errors from one presentable.
   
 Both of these methods are compatible with error_messages_for. It just depends whether you'd like to show all the errors in one block, or whether you'd prefer to break them up.
+
+=== Protected and Accessible Attributes
+
+ActivePresenter supports +attr_protected+ and +attr_accessible+ just like an ActiveRecord object to avoid mass assignment. This can be leveraged to provide an additional layer of protection at the presenter level.
+
+  class AccountPresenter < ActivePresenter::Base
+    presents :user, :profile
+    attr_accessible :user_email, :profile_birthday
+  end
 
 === Saving
 
