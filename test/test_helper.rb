@@ -1,4 +1,4 @@
-require File.dirname(__FILE__)+'/../lib/active_presenter'
+require File.dirname(__FILE__)+'/../lib/active_presenter' unless defined?(ActivePresenter)
 require 'expectations'
 require 'logger'
 
@@ -34,6 +34,7 @@ ActiveRecord::Schema.define(:version => 0) do
   create_table :accounts do |t|
     t.string :subdomain, :default => ''
     t.string :title,     :default => ''
+    t.string :secret,    :default => ''
   end
   
   create_table :addresses do |t|
@@ -43,6 +44,14 @@ ActiveRecord::Schema.define(:version => 0) do
   create_table :account_infos do |t|
     t.string :info
   end
+  
+  create_table :histories do |t|
+    t.integer  :user_id
+    t.string   :comment,   :default => ''
+    t.string   :action,    :default => ''
+    t.datetime :created_at
+  end
+  
 end
 
 class User < ActiveRecord::Base
@@ -60,6 +69,7 @@ class User < ActiveRecord::Base
   end
 end
 class Account < ActiveRecord::Base; end
+class History < ActiveRecord::Base; end
 class Address < ActiveRecord::Base; end
 class AccountInfo < ActiveRecord::Base; end
 
@@ -69,10 +79,16 @@ end
 
 class SignupPresenter < ActivePresenter::Base
   presents :account, :user
+  attr_protected :account_secret
 end
 
 class EndingWithSPresenter < ActivePresenter::Base
   presents :address
+end
+
+class HistoricalPresenter < ActivePresenter::Base
+  presents :user, :history  
+  attr_accessible :history_comment
 end
 
 class CantSavePresenter < ActivePresenter::Base

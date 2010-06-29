@@ -305,7 +305,7 @@ Expectations do
     end.steps
   end
 
-  expect ActiveRecord::Errors.any_instance.to.receive(:clear) do
+  expect ActiveRecord::Errors.any_instance.to.receive(:clear).twice do
     CallbackCantValidatePresenter.new.valid?
   end
 
@@ -335,4 +335,28 @@ Expectations do
     p.save
     p.secondary_address_street
   end
+  
+  # attr_protected
+  expect "" do
+    p = SignupPresenter.new(:account_secret => 'swordfish')
+    p.account.secret
+  end
+  
+  expect "comment" do
+    p = HistoricalPresenter.new(:history_comment => 'comment', :user => User.new(hash_for_user))
+    p.save
+    p.history_comment
+  end
+  
+  expect false do
+    SignupPresenter.new.changed?
+  end
+  
+  expect true do
+    p = SignupPresenter.new(:user => User.new(hash_for_user))
+    p.save
+    p.user_login = 'something_else'
+    p.changed?
+  end
+  
 end
