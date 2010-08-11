@@ -1,5 +1,5 @@
 module ActivePresenter
-  module VERSION
+  module Version
     MAJOR    = 1
     MINOR    = 3
     TINY     = 0

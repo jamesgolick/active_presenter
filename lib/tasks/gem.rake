@@ -4,7 +4,7 @@ task :clean => :clobber_package
 
 spec = Gem::Specification.new do |s|
   s.name                  = ActivePresenter::NAME
-  s.version               = ActivePresenter::VERSION::STRING
+  s.version               = ActivePresenter::Version::STRING
   s.summary               = 
   s.description           = "ActivePresenter is the presenter library you already know! (...if you know ActiveRecord)"
   s.author                = "James Golick & Daniel Haran"
@@ -29,14 +29,14 @@ task :tag_warn do
   puts "*" * 40
   puts "Don't forget to tag the release:"
   puts
-  puts "  git tag -a v#{ActivePresenter::VERSION::STRING}"
+  puts "  git tag -a v#{ActivePresenter::Version::STRING}"
   puts
   puts "or run rake tag"
   puts "*" * 40
 end
 
 task :tag do
-  sh "git tag -a v#{ActivePresenter::VERSION::STRING}"
+  sh "git tag -a v#{ActivePresenter::Version::STRING}"
 end
 task :gem => :tag_warn
 
@@ -46,8 +46,8 @@ namespace :gem do
     desc 'Upload gems (ruby & win32) to rubyforge.org'
     task :rubyforge => :gem do
       sh 'rubyforge login'
-      sh "rubyforge add_release giraffesoft active_presenter #{ActivePresenter::VERSION::STRING} pkg/#{spec.full_name}.gem"
-      sh "rubyforge add_file    giraffesoft active_presenter #{ActivePresenter::VERSION::STRING} pkg/#{spec.full_name}.gem"
+      sh "rubyforge add_release giraffesoft active_presenter #{ActivePresenter::Version::STRING} pkg/#{spec.full_name}.gem"
+      sh "rubyforge add_file    giraffesoft active_presenter #{ActivePresenter::Version::STRING} pkg/#{spec.full_name}.gem"
     end
     
   end
@@ -58,5 +58,5 @@ task :install => [:clobber, :package] do
 end
 
 task :uninstall => :clean do
-  sh "sudo gem uninstall -v #{ActivePresenter::VERSION::STRING} -x #{ActivePresenter::NAME}"
+  sh "sudo gem uninstall -v #{ActivePresenter::Version::STRING} -x #{ActivePresenter::NAME}"
 end

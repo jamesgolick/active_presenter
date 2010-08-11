@@ -3,10 +3,11 @@ module ActivePresenter
   #
   class Base
     include ActiveSupport::Callbacks
+    include ActiveModel::MassAssignmentSecurity
+    
     define_callbacks :before_validation, :before_save, :after_save
     
     class_inheritable_accessor :presented
-    class_inheritable_accessor :attr_protected, :attr_accessible
     self.presented = {}
     
     # Indicates which models are to be presented by this presenter.
@@ -68,30 +69,6 @@ module ActivePresenter
       I18n.translate(defaults.shift, {:scope => [:activerecord, :models], :count => 1, :default => defaults}.merge(options))
     end
     
-    # Note that +attr_protected+ is still applied to the received hash. Thus,
-    # with this technique you can at most _extend_ the list of protected
-    # attributes for a particular mass-assignment call.
-    def self.attr_protected(*attributes)
-      write_inheritable_attribute(:attr_protected, Set.new(attributes.map {|a| a.to_s}) + (protected_attributes || []))
-    end
-    
-    # Returns an array of all the attributes that have been protected from mass-assignment.
-    def self.protected_attributes # :nodoc:
-      read_inheritable_attribute(:attr_protected)
-    end
-    
-    # Note that +attr_accessible+ is still applied to the received hash. Thus,
-    # with this technique you can at most _narrow_ the list of accessible
-    # attributes for a particular mass-assignment call.
-    def self.attr_accessible(*attributes)
-      write_inheritable_attribute(:attr_accessible, Set.new(attributes.map(&:to_s)) + (accessible_attributes || []))
-    end
-    
-    # Returns an array of all the attributes that have been made accessible to mass-assignment.
-    def self.accessible_attributes # :nodoc:
-      read_inheritable_attribute(:attr_accessible)
-    end
-    
     # Accepts arguments in two forms. For example, if you had a SignupPresenter that presented User, and Account, you could specify arguments in the following two forms:
     #
     #   1. SignupPresenter.new(:user_login => 'james', :user_password => 'swordfish', :user_password_confirmation => 'swordfish', :account_subdomain => 'giraffesoft')
@@ -124,9 +101,8 @@ module ActivePresenter
       
       attrs = attrs.stringify_keys
       multi_parameter_attributes = {}
-      attrs = remove_attributes_protected_from_mass_assignment(attrs)
       
-      attrs.each do |k,v|
+      sanitize_for_mass_assignment(attrs).each do |k, v|
         if (base_attribute = k.to_s.split("(").first) != k.to_s
           presentable = presentable_for(base_attribute)
           multi_parameter_attributes[presentable] ||= {}
@@ -292,24 +268,11 @@ module ActivePresenter
         presentable    = presentable_for(name)
         return false unless presentable
         flat_attribute = {flatten_attribute_name(name, presentable) => ''} #remove_att... normally takes a hash, so we use a ''
-        presented[presentable].new.send(:remove_attributes_protected_from_mass_assignment, flat_attribute).empty?
+        presented[presentable].new.send(:sanitize_for_mass_assignment, flat_attribute).empty?
       end
       
       def run_callbacks_with_halt(callback)
         run_callbacks(callback) { |result, object| result == false }
       end
-      
-      def remove_attributes_protected_from_mass_assignment(attributes)
-        if self.class.accessible_attributes.nil? && self.class.protected_attributes.nil?
-          attributes
-        elsif self.class.protected_attributes.nil?
-          attributes.reject { |key, value| !self.class.accessible_attributes.include?(key.gsub(/\(.+/, ""))}
-        elsif self.class.accessible_attributes.nil?
-          attributes.reject { |key, value| self.class.protected_attributes.include?(key.gsub(/\(.+/,""))}
-        else
-          raise "Declare either attr_protected or attr_accessible for #{self.class}, but not both."
-        end
-      end
-      
   end
 end
