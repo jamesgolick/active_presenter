@@ -143,7 +143,7 @@ module ActivePresenter
       errors.clear
       result = _run_validation_callbacks do
         presented.each do |type, klass|
-          presented_inst = send(type) || klass.new
+          presented_inst = (send(type) || klass.new)
           next unless save?(type, presented_inst)
           merge_errors(presented_inst, type) unless presented_inst.valid?
         end
