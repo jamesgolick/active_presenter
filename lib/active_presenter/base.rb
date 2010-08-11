@@ -2,10 +2,16 @@ module ActivePresenter
   # Base class for presenters. See README for usage.
   #
   class Base
-    include ActiveSupport::Callbacks
-    include ActiveModel::MassAssignmentSecurity
+    extend  ActiveModel::Callbacks
+    extend  ActiveModel::Naming
+    extend  ActiveModel::Translation
     
-    define_callbacks :before_validation, :before_save, :after_save
+    include ActiveModel::Conversion
+    include ActiveModel::MassAssignmentSecurity
+
+    attr_reader :errors
+    
+    define_model_callbacks :validation, :save
     
     class_inheritable_accessor :presented
     self.presented = {}
@@ -23,50 +29,52 @@ module ActivePresenter
     #     presents :primary_address => Address, :secondary_address => Address
     #   end
     #
-    def self.presents(*types)
-      types_and_classes = types.extract_options!
-      types.each { |t| types_and_classes[t] = t.to_s.tableize.classify.constantize }
+    class << self
+      def presents(*types)
+        types_and_classes = types.extract_options!
+        types.each { |t| types_and_classes[t] = t.to_s.tableize.classify.constantize }
 
-      attr_accessor *types_and_classes.keys
-      
-      types_and_classes.keys.each do |t|
-        define_method("#{t}_errors") do
-          send(t).errors
-        end
+        attr_accessor *types_and_classes.keys
         
-        presented[t] = types_and_classes[t]
+        types_and_classes.keys.each do |t|
+          define_method("#{t}_errors") do
+            send(t).errors
+          end
+          
+          presented[t] = types_and_classes[t]
+        end
       end
-    end
-    
-    def self.human_attribute_name(attribute_key_name, options = {})
-      presentable_type = presented.keys.detect do |type|
-        attribute_key_name.to_s.starts_with?("#{type}_") || attribute_key_name.to_s == type.to_s
-      end
-      attribute_key_name_without_class = attribute_key_name.to_s.gsub("#{presentable_type}_", "")
       
-      if presented[presentable_type] and attribute_key_name_without_class != presentable_type.to_s
-        presented[presentable_type].human_attribute_name(attribute_key_name_without_class, options)
-      else
-        I18n.translate(presentable_type, options.merge(:default => presentable_type.to_s.humanize, :scope => [:activerecord, :models]))
+      def human_attribute_name(attribute_key_name, options = {})
+        presentable_type = presented.keys.detect do |type|
+          attribute_key_name.to_s.starts_with?("#{type}_") || attribute_key_name.to_s == type.to_s
+        end
+        attribute_key_name_without_class = attribute_key_name.to_s.gsub("#{presentable_type}_", "")
+        
+        if presented[presentable_type] and attribute_key_name_without_class != presentable_type.to_s
+          presented[presentable_type].human_attribute_name(attribute_key_name_without_class, options)
+        else
+          I18n.translate(presentable_type, options.merge(:default => presentable_type.to_s.humanize, :scope => [:activerecord, :models]))
+        end
       end
-    end
-    
-    # Since ActivePresenter does not descend from ActiveRecord, we need to
-    # mimic some ActiveRecord behavior in order for the ActiveRecord::Errors
-    # object we're using to work properly.
-    #
-    # This problem was introduced with Rails 2.3.4.
-    # Fix courtesy http://gist.github.com/191263
-    def self.self_and_descendants_from_active_record # :nodoc:
-      [self]
-    end
-    
-    def self.human_name(options = {}) # :nodoc:
-      defaults = self_and_descendants_from_active_record.map do |klass|
-        :"#{klass.name.underscore}"
-      end 
-      defaults << self.name.humanize
-      I18n.translate(defaults.shift, {:scope => [:activerecord, :models], :count => 1, :default => defaults}.merge(options))
+      
+      # Since ActivePresenter does not descend from ActiveRecord, we need to
+      # mimic some ActiveRecord behavior in order for the ActiveRecord::Errors
+      # object we're using to work properly.
+      #
+      # This problem was introduced with Rails 2.3.4.
+      # Fix courtesy http://gist.github.com/191263
+      def self_and_descendants_from_active_record # :nodoc:
+        [self]
+      end
+      
+      def human_name(options = {}) # :nodoc:
+        defaults = self_and_descendants_from_active_record.map do |klass|
+          :"#{klass.name.underscore}"
+        end 
+        defaults << self.name.humanize
+        I18n.translate(defaults.shift, {:scope => [:activerecord, :models], :count => 1, :default => defaults}.merge(options))
+      end
     end
     
     # Accepts arguments in two forms. For example, if you had a SignupPresenter that presented User, and Account, you could specify arguments in the following two forms:
@@ -82,13 +90,12 @@ module ActivePresenter
     # If you don't specify an instance, one will be created by calling Model.new
     #
     def initialize(args = {})
-      args ||= {}
-      
+      @errors = ActiveModel::Errors.new(self)
+      return self unless args
       presented.each do |type, klass|
         value = args.delete(type)
         send("#{type}=", value.is_a?(klass) ? value : klass.new)
       end
-      
       self.attributes = args
     end
 
@@ -98,11 +105,11 @@ module ActivePresenter
     #
     def attributes=(attrs)
       return if attrs.nil?
-      
-      attrs = attrs.stringify_keys
+
+      attrs = attrs.stringify_keys      
       multi_parameter_attributes = {}
       
-      sanitize_for_mass_assignment(attrs).each do |k, v|
+      sanitize_for_mass_assignment(attrs).each do |k,v|
         if (base_attribute = k.to_s.split("(").first) != k.to_s
           presentable = presentable_for(base_attribute)
           multi_parameter_attributes[presentable] ||= {}
@@ -129,26 +136,20 @@ module ActivePresenter
       presented_attribute?(method_name) ? delegate_message(method_name, *args, &block) : super
     end
     
-    # Returns an instance of ActiveRecord::Errors with all the errors from the presentables merged in using the type_attribute form (i.e. user_login).
-    #
-    def errors
-      @errors ||= ActiveRecord::Errors.new(self)
-    end
-    
     # Returns boolean based on the validity of the presentables by calling valid? on each of them.
     #
     def valid?
+      validated = false
       errors.clear
-      if run_callbacks_with_halt(:before_validation)
+      result = _run_validation_callbacks do
         presented.keys.each do |type|
           presented_inst = send(type)
-
           next unless save?(type, presented_inst)
           merge_errors(presented_inst, type) unless presented_inst.valid?
         end
-
-        errors.empty?
+        validated = true
       end
+      errors.empty? && validated
     end
     
     # Do any of the attributes have unsaved changes?
@@ -162,16 +163,14 @@ module ActivePresenter
     #
     def save
       saved = false
-      
       ActiveRecord::Base.transaction do
-        if valid? && run_callbacks_with_halt(:before_save)
-          saved = presented.keys.select {|key| save?(key, send(key))}.all? {|key| send(key).save}
-          raise ActiveRecord::Rollback unless saved # TODO: Does this happen implicitly?
+        if valid?
+          _run_save_callbacks do
+            saved = presented.keys.select {|key| save?(key, send(key))}.all? {|key| send(key).save}
+            raise ActiveRecord::Rollback unless saved
+          end
         end
-
-        run_callbacks_with_halt(:after_save) if saved
       end
-      
       saved
     end
     
@@ -180,16 +179,16 @@ module ActivePresenter
     # Returns true on success, will raise otherwise.
     # 
     def save!
-      raise ActiveRecord::RecordInvalid.new(self) unless valid?
-      raise ActiveRecord::RecordNotSaved unless run_callbacks_with_halt(:before_save)
-      
+      saved = false
       ActiveRecord::Base.transaction do
-        presented.keys.select {|key| save?(key, send(key))}.each {|key| send(key).save!}
-
-        run_callbacks_with_halt(:after_save)
+        raise ActiveRecord::RecordInvalid.new(self) unless valid?
+        _run_save_callbacks do
+          presented.keys.select {|key| save?(key, send(key))}.all? {|key| send(key).save!}
+          saved = true
+        end
+      raise ActiveRecord::RecordNotSaved.new(self) unless saved
       end
-
-      true
+      saved
     end
     
     # Update attributes, and save the presentables
@@ -220,9 +219,13 @@ module ActivePresenter
     def id # :nodoc:
       nil
     end
-    
+
     def new_record?
-      true
+      presented_instances.map(&:new_record?).all?
+    end
+    
+    def persisted?
+      presented_instances.map(&:persisted?).all?
     end
 
     protected
@@ -256,10 +259,10 @@ module ActivePresenter
       
       def merge_errors(presented_inst, type)
         presented_inst.errors.each do |att,msg|
-          if att == 'base'
+          if att == :base
             errors.add(type, msg)
           else
-            errors.add(attribute_prefix(type)+att, msg)
+            errors.add(attribute_prefix(type)+att.to_s, msg)
           end
         end
       end
@@ -267,12 +270,9 @@ module ActivePresenter
       def attribute_protected?(name)
         presentable    = presentable_for(name)
         return false unless presentable
-        flat_attribute = {flatten_attribute_name(name, presentable) => ''} #remove_att... normally takes a hash, so we use a ''
+        #remove_att... normally takes a hash, so we use a ''
+        flat_attribute = {flatten_attribute_name(name, presentable) => ''}
         presented[presentable].new.send(:sanitize_for_mass_assignment, flat_attribute).empty?
-      end
-      
-      def run_callbacks_with_halt(callback)
-        run_callbacks(callback) { |result, object| result == false }
       end
   end
 end
