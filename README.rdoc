@@ -6,19 +6,17 @@ By acting nearly identically to ActiveRecord models, ActivePresenter makes prese
 
 == Get It
 
-As a gem:
+As a gem (Gemfile):
 
-  $ sudo gem install active_presenter
+  gem 'active_presenter', :git => 'git://github.com/galetahub/active_presenter.git'
 
-As a rails gem dependency:
+As a rails plugin:
 
-  config.gem 'active_presenter'
+  rails install plugin git://github.com/galetahub/active_presenter.git
   
 Or get the source from github:
   
-  $ git clone git://github.com/giraffesoft/active_presenter.git
-  
-(or fork it at http://github.com/giraffesoft/active_presenter)
+  $ git clone git://github.com/galetahub/active_presenter.git
     
 == Usage
 
