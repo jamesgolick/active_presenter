@@ -161,10 +161,10 @@ module ActivePresenter
     # 
     # Returns true or false based on success.
     #
-    def save
+    def save(options={})
       saved = false
       ActiveRecord::Base.transaction do
-        if valid?
+        if !perform_validations?(options) || (perform_validations?(options) && valid?)
           _run_save_callbacks do
             saved = presented.keys.select {|key| save?(key, send(key))}.all? {|key| send(key).save}
             raise ActiveRecord::Rollback unless saved
@@ -178,10 +178,10 @@ module ActivePresenter
     #
     # Returns true on success, will raise otherwise.
     # 
-    def save!
+    def save!(options={})
       saved = false
       ActiveRecord::Base.transaction do
-        raise ActiveRecord::RecordInvalid.new(self) unless valid?
+        raise ActiveRecord::RecordInvalid.new(self) if perform_validations?(options) && !valid?
         _run_save_callbacks do
           presented.keys.select {|key| save?(key, send(key))}.all? {|key| send(key).save!}
           saved = true
@@ -273,6 +273,10 @@ module ActivePresenter
         #remove_att... normally takes a hash, so we use a ''
         flat_attribute = {flatten_attribute_name(name, presentable) => ''}
         presented[presentable].new.send(:sanitize_for_mass_assignment, flat_attribute).empty?
+      end
+      
+      def perform_validations?(options={})
+        options[:validate] != false
       end
   end
 end
