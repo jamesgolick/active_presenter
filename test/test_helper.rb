@@ -1,4 +1,3 @@
-require File.dirname(__FILE__)+'/../lib/active_presenter'
 require 'expectations'
 require 'logger'
 

@@ -1,5 +1,5 @@
 require 'rake'
-require 'rake/rdoctask'
+require 'rdoc/task'
 require File.dirname(__FILE__)+'/lib/active_presenter'
 Dir.glob(File.dirname(__FILE__)+'/lib/tasks/**/*.rake').each { |l| load l }
 

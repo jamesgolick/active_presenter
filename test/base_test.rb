@@ -143,7 +143,7 @@ Expectations do
   end
 
   expect Account.any_instance.to.receive(:save!) do
-    User.any_instance.stubs(:save!)
+    User.any_instance.stubs(:save!).returns(true)
     s = SignupPresenter.new(:user_login => "da", :user_password => "seekrit")
     s.save!
   end
