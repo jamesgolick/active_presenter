@@ -1,9 +1,4 @@
+# encoding: utf-8
 module ActivePresenter
-  module Version
-    MAJOR    = 1
-    MINOR    = 3
-    TINY     = 1
-    
-    STRING   = [MAJOR, MINOR, TINY].join('.')
-  end
+  VERSION = "0.1.0".freeze
 end
