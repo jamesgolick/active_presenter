@@ -228,6 +228,13 @@ module ActivePresenter
       presented_instances.map(&:persisted?).all?
     end
 
+    def column_for_attribute(attr)
+      p = presentable_for(attr)
+      return nil unless p
+      send(p).send(:column_for_attribute, flatten_attribute_name(attr,p))
+    end
+
+
     protected
       def presented_instances
         presented.keys.map { |key| send(key) }
