@@ -12,7 +12,7 @@ module ActivePresenter
 
     define_model_callbacks :validation, :save
 
-    class_inheritable_accessor :presented
+    class_attribute :presented
     self.presented = {}
 
     # Indicates which models are to be presented by this presenter.
@@ -39,7 +39,8 @@ module ActivePresenter
           send(t).errors
         end
 
-        presented[t] = types_and_classes[t]
+        # We must reassign in derrived classes rather than mutating the attribute in Base
+        self.presented = self.presented.merge(t => types_and_classes[t])
       end
     end
 
