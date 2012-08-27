@@ -2,13 +2,19 @@ module ActivePresenter
   # Base class for presenters. See README for usage.
   #
   class Base
-    include ActiveSupport::Callbacks
-    define_callbacks :before_validation, :before_save, :after_save
-    
-    class_inheritable_accessor :presented
-    class_inheritable_accessor :attr_protected, :attr_accessible
+    extend  ActiveModel::Callbacks
+    extend  ActiveModel::Naming
+    extend  ActiveModel::Translation
+    include ActiveModel::MassAssignmentSecurity
+    include ActiveModel::Conversion
+
+    attr_reader :errors
+
+    define_model_callbacks :validation, :save
+
+    class_attribute :presented
     self.presented = {}
-    
+
     # Indicates which models are to be presented by this presenter.
     # i.e.
     #
@@ -27,29 +33,30 @@ module ActivePresenter
       types.each { |t| types_and_classes[t] = t.to_s.tableize.classify.constantize }
 
       attr_accessor *types_and_classes.keys
-      
+
       types_and_classes.keys.each do |t|
         define_method("#{t}_errors") do
           send(t).errors
         end
-        
-        presented[t] = types_and_classes[t]
+
+        # We must reassign in derrived classes rather than mutating the attribute in Base
+        self.presented = self.presented.merge(t => types_and_classes[t])
       end
     end
-    
+
     def self.human_attribute_name(attribute_key_name, options = {})
       presentable_type = presented.keys.detect do |type|
         attribute_key_name.to_s.starts_with?("#{type}_") || attribute_key_name.to_s == type.to_s
       end
       attribute_key_name_without_class = attribute_key_name.to_s.gsub("#{presentable_type}_", "")
-      
+
       if presented[presentable_type] and attribute_key_name_without_class != presentable_type.to_s
         presented[presentable_type].human_attribute_name(attribute_key_name_without_class, options)
       else
         I18n.translate(presentable_type, options.merge(:default => presentable_type.to_s.humanize, :scope => [:activerecord, :models]))
       end
     end
-    
+
     # Since ActivePresenter does not descend from ActiveRecord, we need to
     # mimic some ActiveRecord behavior in order for the ActiveRecord::Errors
     # object we're using to work properly.
@@ -59,7 +66,7 @@ module ActivePresenter
     def self.self_and_descendants_from_active_record # :nodoc:
       [self]
     end
-    
+
     def self.human_name(options = {}) # :nodoc:
       defaults = self_and_descendants_from_active_record.map do |klass|
         :"#{klass.name.underscore}"
@@ -67,31 +74,7 @@ module ActivePresenter
       defaults << self.name.humanize
       I18n.translate(defaults.shift, {:scope => [:activerecord, :models], :count => 1, :default => defaults}.merge(options))
     end
-    
-    # Note that +attr_protected+ is still applied to the received hash. Thus,
-    # with this technique you can at most _extend_ the list of protected
-    # attributes for a particular mass-assignment call.
-    def self.attr_protected(*attributes)
-      write_inheritable_attribute(:attr_protected, Set.new(attributes.map {|a| a.to_s}) + (protected_attributes || []))
-    end
-    
-    # Returns an array of all the attributes that have been protected from mass-assignment.
-    def self.protected_attributes # :nodoc:
-      read_inheritable_attribute(:attr_protected)
-    end
-    
-    # Note that +attr_accessible+ is still applied to the received hash. Thus,
-    # with this technique you can at most _narrow_ the list of accessible
-    # attributes for a particular mass-assignment call.
-    def self.attr_accessible(*attributes)
-      write_inheritable_attribute(:attr_accessible, Set.new(attributes.map(&:to_s)) + (accessible_attributes || []))
-    end
-    
-    # Returns an array of all the attributes that have been made accessible to mass-assignment.
-    def self.accessible_attributes # :nodoc:
-      read_inheritable_attribute(:attr_accessible)
-    end
-    
+
     # Accepts arguments in two forms. For example, if you had a SignupPresenter that presented User, and Account, you could specify arguments in the following two forms:
     #
     #   1. SignupPresenter.new(:user_login => 'james', :user_password => 'swordfish', :user_password_confirmation => 'swordfish', :account_subdomain => 'giraffesoft')
@@ -105,13 +88,12 @@ module ActivePresenter
     # If you don't specify an instance, one will be created by calling Model.new
     #
     def initialize(args = {})
-      args ||= {}
-      
+      @errors = ActiveModel::Errors.new(self)
+      return self unless args
       presented.each do |type, klass|
         value = args.delete(type)
         send("#{type}=", value.is_a?(klass) ? value : klass.new)
       end
-      
       self.attributes = args
     end
 
@@ -121,11 +103,11 @@ module ActivePresenter
     #
     def attributes=(attrs)
       return if attrs.nil?
-      
-      attrs = attrs.stringify_keys
+
+      attrs = attrs.stringify_keys      
       multi_parameter_attributes = {}
-      attrs = remove_attributes_protected_from_mass_assignment(attrs)
-      
+      attrs = sanitize_for_mass_assignment(attrs)
+
       attrs.each do |k,v|
         if (base_attribute = k.to_s.split("(").first) != k.to_s
           presentable = presentable_for(base_attribute)
@@ -135,87 +117,79 @@ module ActivePresenter
           send("#{k}=", v) unless attribute_protected?(k)
         end
       end
-      
+
       multi_parameter_attributes.each do |presentable,multi_attrs|
         send(presentable).send(:attributes=, multi_attrs)
       end
     end
-    
+
     # Makes sure that the presenter is accurate about responding to presentable's attributes, even though they are handled by method_missing.
     #
     def respond_to?(method, include_private = false)
       presented_attribute?(method) || super
     end
-    
+
     # Handles the decision about whether to delegate getters and setters to presentable instances.
     #
     def method_missing(method_name, *args, &block)
       presented_attribute?(method_name) ? delegate_message(method_name, *args, &block) : super
     end
-    
-    # Returns an instance of ActiveRecord::Errors with all the errors from the presentables merged in using the type_attribute form (i.e. user_login).
-    #
-    def errors
-      @errors ||= ActiveRecord::Errors.new(self)
-    end
-    
+
     # Returns boolean based on the validity of the presentables by calling valid? on each of them.
     #
     def valid?
+      validated = false
       errors.clear
-      if run_callbacks_with_halt(:before_validation)
+      result = _run_validation_callbacks do
         presented.keys.each do |type|
           presented_inst = send(type)
-
           next unless save?(type, presented_inst)
           merge_errors(presented_inst, type) unless presented_inst.valid?
         end
-
-        errors.empty?
+        validated = true
       end
+      errors.empty? && validated
     end
-    
+
     # Do any of the attributes have unsaved changes?
     def changed?
       presented_instances.map(&:changed?).any?
     end
-    
+
     # Save all of the presentables, wrapped in a transaction.
     # 
     # Returns true or false based on success.
     #
     def save
       saved = false
-      
       ActiveRecord::Base.transaction do
-        if valid? && run_callbacks_with_halt(:before_save)
-          saved = presented.keys.select {|key| save?(key, send(key))}.all? {|key| send(key).save}
-          raise ActiveRecord::Rollback unless saved # TODO: Does this happen implicitly?
+        if valid?
+          _run_save_callbacks do
+            saved = presented.keys.select {|key| save?(key, send(key))}.all? {|key| send(key).save}
+            raise ActiveRecord::Rollback unless saved
+          end
         end
-
-        run_callbacks_with_halt(:after_save) if saved
       end
-      
       saved
     end
-    
+
     # Save all of the presentables wrapped in a transaction.
     #
     # Returns true on success, will raise otherwise.
     # 
     def save!
-      raise ActiveRecord::RecordInvalid.new(self) unless valid?
-      raise ActiveRecord::RecordNotSaved unless run_callbacks_with_halt(:before_save)
-      
+      saved = false
       ActiveRecord::Base.transaction do
-        presented.keys.select {|key| save?(key, send(key))}.each {|key| send(key).save!}
-
-        run_callbacks_with_halt(:after_save)
+        raise ActiveRecord::RecordInvalid.new(self) unless valid?
+        _run_save_callbacks do
+          presented.keys.select {|key| save?(key, send(key))}.all? {|key| send(key).save!}
+          saved = true
+        end
+        raise ActiveRecord::RecordNotSaved.new(self) unless saved
       end
-
-      true
+      saved
     end
-    
+
     # Update attributes, and save the presentables
     #
     # Returns true or false based on success.
@@ -224,7 +198,7 @@ module ActivePresenter
       self.attributes = attrs
       save
     end
-    
+
     # Should this presented instance be saved?  By default, this returns true
     # Called from #save and #save!
     #
@@ -246,70 +220,58 @@ module ActivePresenter
     end
     
     def new_record?
-      true
+      presented_instances.map(&:new_record?).all?
+    end
+
+    def persisted?
+      presented_instances.map(&:persisted?).all?
     end
 
     protected
-      def presented_instances
-        presented.keys.map { |key| send(key) }
+
+    def presented_instances
+      presented.keys.map { |key| send(key) }
+    end
+
+    def delegate_message(method_name, *args, &block)
+      presentable = presentable_for(method_name)
+      send(presentable).send(flatten_attribute_name(method_name, presentable), *args, &block)
+    end
+
+    def presentable_for(method_name)
+      presented.keys.sort_by { |k| k.to_s.size }.reverse.detect do |type|
+        method_name.to_s.starts_with?(attribute_prefix(type))
       end
-      
-      def delegate_message(method_name, *args, &block)
-        presentable = presentable_for(method_name)
-        send(presentable).send(flatten_attribute_name(method_name, presentable), *args, &block)
-      end
-      
-      def presentable_for(method_name)
-        presented.keys.sort_by { |k| k.to_s.size }.reverse.detect do |type|
-          method_name.to_s.starts_with?(attribute_prefix(type))
-        end
-      end
-    
-      def presented_attribute?(method_name)
-        p = presentable_for(method_name)
-        !p.nil? && send(p).respond_to?(flatten_attribute_name(method_name,p))
-      end
-      
-      def flatten_attribute_name(name, type)
-        name.to_s.gsub(/^#{attribute_prefix(type)}/, '')
-      end
-      
-      def attribute_prefix(type)
-        "#{type}_"
-      end
-      
-      def merge_errors(presented_inst, type)
-        presented_inst.errors.each do |att,msg|
-          if att == 'base'
-            errors.add(type, msg)
-          else
-            errors.add(attribute_prefix(type)+att, msg)
-          end
-        end
-      end
-      
-      def attribute_protected?(name)
-        presentable    = presentable_for(name)
-        return false unless presentable
-        flat_attribute = {flatten_attribute_name(name, presentable) => ''} #remove_att... normally takes a hash, so we use a ''
-        presented[presentable].new.send(:remove_attributes_protected_from_mass_assignment, flat_attribute).empty?
-      end
-      
-      def run_callbacks_with_halt(callback)
-        run_callbacks(callback) { |result, object| result == false }
-      end
-      
-      def remove_attributes_protected_from_mass_assignment(attributes)
-        if self.class.accessible_attributes.nil? && self.class.protected_attributes.nil?
-          attributes
-        elsif self.class.protected_attributes.nil?
-          attributes.reject { |key, value| !self.class.accessible_attributes.include?(key.gsub(/\(.+/, ""))}
-        elsif self.class.accessible_attributes.nil?
-          attributes.reject { |key, value| self.class.protected_attributes.include?(key.gsub(/\(.+/,""))}
+    end
+
+    def presented_attribute?(method_name)
+      p = presentable_for(method_name)
+      !p.nil? && send(p).respond_to?(flatten_attribute_name(method_name,p))
+    end
+
+    def flatten_attribute_name(name, type)
+      name.to_s.gsub(/^#{attribute_prefix(type)}/, '')
+    end
+
+    def attribute_prefix(type)
+      "#{type}_"
+    end
+
+    def merge_errors(presented_inst, type)
+      presented_inst.errors.each do |att,msg|
+        if att == :base
+          errors.add(type, msg)
         else
-          raise "Declare either attr_protected or attr_accessible for #{self.class}, but not both."
+          errors.add(attribute_prefix(type)+att.to_s, msg)
         end
       end
-      
+    end
+
+    def attribute_protected?(name)
+      presentable = presentable_for(name)
+      return false unless presentable
+      flat_attribute = {flatten_attribute_name(name, presentable) => ''} #remove_att... normally takes a hash, so we use a ''
+      presented[presentable].new.send(:sanitize_for_mass_assignment, flat_attribute).empty?
+    end
   end
 end

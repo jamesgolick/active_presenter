@@ -1,4 +1,4 @@
-require 'rake/gempackagetask'
+require 'rubygems/package_task'
 
 task :clean => :clobber_package
 
@@ -21,7 +21,7 @@ spec = Gem::Specification.new do |s|
   s.require_path          = "lib"
 end
 
-Rake::GemPackageTask.new(spec) do |p|
+Gem::PackageTask.new(spec) do |p|
   p.gem_spec = spec
 end
 
