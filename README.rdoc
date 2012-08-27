@@ -91,6 +91,8 @@ Note that if any of your after_save callbacks return false, the rest of them wil
 
 ActivePresenter was created, and is maintained by {Daniel Haran}[http://danielharan.com] and {James Golick}[http://jamesgolick.com] on the train ride to {RubyFringe}[http://rubyfringe.com] from Montreal.
 
+ActivePresenter for Rails 3 is currently maintained by {Josh Martin}[http://github.com/skiz] and {Johnno Loggie}[http://github.com/johnno]
+
 == License
 
 ActivePresenter is available under the {MIT License}[http://en.wikipedia.org/wiki/MIT_License]
