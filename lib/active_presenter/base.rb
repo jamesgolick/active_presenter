@@ -2,11 +2,7 @@ module ActivePresenter
   # Base class for presenters. See README for usage.
   #
   class Base
-    extend  ActiveModel::Callbacks
-    extend  ActiveModel::Naming
-    extend  ActiveModel::Translation
-    include ActiveModel::MassAssignmentSecurity
-    include ActiveModel::Conversion
+    include ActiveModel::Model
 
     attr_reader :errors
 
@@ -39,7 +35,7 @@ module ActivePresenter
           send(t).errors
         end
 
-        # We must reassign in derrived classes rather than mutating the attribute in Base
+        # We must reassign in derived classes rather than mutating the attribute in Base
         self.presented = self.presented.merge(t => types_and_classes[t])
       end
     end
@@ -72,7 +68,7 @@ module ActivePresenter
         :"#{klass.name.underscore}"
       end 
       defaults << self.name.humanize
-      I18n.translate(defaults.shift, {:scope => [:activerecord, :models], :count => 1, :default => defaults}.merge(options))
+      I18n.translate(defaults.shift, {scope: [:activerecord, :models], count: 1, default: defaults}.merge(options))
     end
 
     # Accepts arguments in two forms. For example, if you had a SignupPresenter that presented User, and Account, you could specify arguments in the following two forms:
@@ -106,7 +102,7 @@ module ActivePresenter
 
       attrs = attrs.stringify_keys      
       multi_parameter_attributes = {}
-      attrs = sanitize_for_mass_assignment(attrs)
+      # attrs = sanitize_for_mass_assignment(attrs)
 
       attrs.each do |k,v|
         if (base_attribute = k.to_s.split("(").first) != k.to_s
@@ -140,7 +136,7 @@ module ActivePresenter
     def valid?
       validated = false
       errors.clear
-      result = _run_validation_callbacks do
+      result = run_callbacks :validation do
         presented.keys.each do |type|
           presented_inst = send(type)
           next unless save?(type, presented_inst)
@@ -164,7 +160,7 @@ module ActivePresenter
       saved = false
       ActiveRecord::Base.transaction do
         if valid?
-          _run_save_callbacks do
+          run_callbacks :save do
             saved = presented.keys.select {|key| save?(key, send(key))}.all? {|key| send(key).save}
             raise ActiveRecord::Rollback unless saved
           end
@@ -181,7 +177,7 @@ module ActivePresenter
       saved = false
       ActiveRecord::Base.transaction do
         raise ActiveRecord::RecordInvalid.new(self) unless valid?
-        _run_save_callbacks do
+        run_callbacks :save do
           presented.keys.select {|key| save?(key, send(key))}.all? {|key| send(key).save!}
           saved = true
         end
@@ -268,10 +264,12 @@ module ActivePresenter
     end
 
     def attribute_protected?(name)
-      presentable = presentable_for(name)
-      return false unless presentable
-      flat_attribute = {flatten_attribute_name(name, presentable) => ''} #remove_att... normally takes a hash, so we use a ''
-      presented[presentable].new.send(:sanitize_for_mass_assignment, flat_attribute).empty?
+
+      return false
+      # presentable = presentable_for(name)
+      # return false unless presentable
+      # flat_attribute = {flatten_attribute_name(name, presentable) => ''} #remove_att... normally takes a hash, so we use a ''
+      # presented[presentable].new.send(:sanitize_for_mass_assignment, flat_attribute).empty?
     end
   end
 end
