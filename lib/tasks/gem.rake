@@ -13,7 +13,7 @@ spec = Gem::Specification.new do |s|
   s.rubyforge_project     = 'active_presenter'
   s.has_rdoc              = true
 
-  s.required_ruby_version = '>= 1.8.5'
+  s.required_ruby_version = '>= 2'
 
   s.files                 = %w(README LICENSE Rakefile) +
                             Dir.glob("{lib,test}/**/*")
@@ -44,7 +44,7 @@ namespace :gem do
   namespace :upload do
 
     desc 'Upload gems (ruby & win32) to rubyforge.org'
-    task :rubyforge => :gem do
+    task rubyforge: :gem do
       sh 'rubyforge login'
       sh "rubyforge add_release giraffesoft active_presenter #{ActivePresenter::VERSION::STRING} pkg/#{spec.full_name}.gem"
       sh "rubyforge add_file    giraffesoft active_presenter #{ActivePresenter::VERSION::STRING} pkg/#{spec.full_name}.gem"
@@ -53,10 +53,10 @@ namespace :gem do
   end
 end
 
-task :install => [:clobber, :package] do
+task install: [:clobber, :package] do
   sh "sudo gem install pkg/#{spec.full_name}.gem"
 end
 
-task :uninstall => :clean do
+task uninstall: :clean do
   sh "sudo gem uninstall -v #{ActivePresenter::VERSION::STRING} -x #{ActivePresenter::NAME}"
 end

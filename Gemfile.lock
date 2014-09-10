@@ -1,0 +1,24 @@
+PATH
+  remote: .
+  specs:
+    active_presenter (4.1.5)
+
+GEM
+  remote: http://rubygems.org/
+  specs:
+    expectations (2.0.0)
+      mocha (>= 0.5.5)
+    metaclass (0.0.4)
+    minitest (4.7.5)
+    mocha (1.1.0)
+      metaclass (~> 0.0.1)
+    sqlite3 (1.3.9)
+
+PLATFORMS
+  ruby
+
+DEPENDENCIES
+  active_presenter!
+  expectations (~> 2.0)
+  minitest (~> 4.2)
+  sqlite3 (>= 1.3)

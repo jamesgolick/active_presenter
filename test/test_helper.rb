@@ -1,26 +1,27 @@
 require 'expectations'
 require 'logger'
+require 'minitest/autorun'
 
-ActiveRecord::Base.configurations = {'sqlite3' => {:adapter => 'sqlite3', :database => ':memory:'}}
-ActiveRecord::Base.establish_connection('sqlite3')
+ActiveRecord::Base.configurations = {'sqlite3' => {adapter: 'sqlite3', database: ':memory:'}}
+ActiveRecord::Base.establish_connection(:sqlite3)
 
 ActiveRecord::Base.logger = Logger.new(STDERR)
 ActiveRecord::Base.logger.level = Logger::WARN
 
 I18n.backend.store_translations '1337',
-  :activerecord => {
-    :models => {
-      :user => 'U53R'
-    },
-    :attributes => {
-      :user => {:password => 'pa22w0rD'}
-    },
-    :errors => {
-      :messages => {
-        :blank => 'c4N n07 83 8L4nK'
-      }
-    }
-  }
+                                activerecord: {
+                                  models: {
+                                    user: 'U53R'
+                                  },
+                                  attributes: {
+                                    user: {password: 'pa22w0rD'}
+                                  },
+                                  errors: {
+                                    messages: {
+                                      blank: 'c4N n07 83 8L4nK'
+                                    }
+                                  }
+                                }
   
 ActiveRecord::Schema.define(:version => 0) do
   create_table :users do |t|
@@ -55,7 +56,7 @@ end
 class User < ActiveRecord::Base
   validates_presence_of :login
   validate :presence_of_password
-  attr_accessible :login, :password, :birthday
+  # attr_accessible :login, :password, :birthday
   attr_accessor   :password_confirmation
 
   def presence_of_password
@@ -77,7 +78,7 @@ end
 
 class SignupPresenter < ActivePresenter::Base
   presents :account, :user
-  attr_protected :account_secret
+  # attr_protected :account_secret
 end
 
 class EndingWithSPresenter < ActivePresenter::Base
@@ -86,7 +87,7 @@ end
 
 class HistoricalPresenter < ActivePresenter::Base
   presents :user, :history  
-  attr_accessible :history_comment
+  # attr_accessible :history_comment
 end
 
 class CantSavePresenter < ActivePresenter::Base
@@ -212,7 +213,7 @@ end
 
 class HistoricalPresenter < ActivePresenter::Base
   presents :user, :history  
-  attr_accessible :history_comment
+  # attr_accessible :history_comment
 end
 
 def hash_for_user(opts = {})
